@@ -1,8 +1,9 @@
+bash
+cat > /home/claude/wc2026/src/App.jsx << 'ENDOFFILE'
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
-// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const T = {
   fa: {
     dir:"rtl", appTitle:"جام‌جهانی ۲۰۲۶", appSubtitle:"پیش‌بینی مسابقات",
@@ -22,7 +23,7 @@ const T = {
     fillAll:"لطفاً همه فیلدها را پر کنید",
     exactScore:"نتیجه دقیق", correctDiff:"اختلاف گل صحیح", correctWinner:"برنده صحیح",
     wrongResult:"نتیجه اشتباه", noPrediction:"عدم پیش‌بینی", pts:"امتیاز",
-    switchLang:"EN", noMatches:"هنوز بازی‌ای ثبت نشده",
+    noMatches:"هنوز بازی‌ای ثبت نشده",
     matchAdded:"بازی اضافه شد", resultSaved:"نتیجه ثبت شد", predictionSaved:"پیش‌بینی ذخیره شد",
     predictionLocked:"⏰ مهلت پیش‌بینی این بازی تمام شده", confirmDelete:"آیا مطمئنید؟",
     myRank:"رتبه من", totalPlayers:"تعداد بازیکنان", prediction:"پیش‌بینی", actual:"نتیجه",
@@ -30,20 +31,22 @@ const T = {
     editPrediction:"ویرایش", groupStandings:"جدول گروه‌ها",
     played:"ب", won:"برد", drawn:"مساوی", lost:"باخت", gf:"گل‌زده", ga:"گل‌خورده", team:"تیم",
     pendingResults:"بازی منتظر ثبت نتیجه",
-    // knockout
-    knockoutBonus:"بونس مرحله حذفی", advanceCorrect:"پیش‌بینی تیم صعودکننده",
+    knockoutBonus:"بونس حذفی", advanceCorrect:"تیم صعودکننده",
     methodCorrect:"روش صعود صحیح", method90:"۹۰ دقیقه", methodET:"وقت اضافه", methodPK:"پنالتی",
-    advanceMethod:"روش صعود", knockoutRules:"قوانین حذفی",
-    // champion
+    advanceMethod:"روش صعود",
     championTab:"قهرمان", championPredict:"پیش‌بینی قهرمان",
-    championDeadline:"مهلت: تا سوت بازی افتتاحیه", championPoints:"۳۰ امتیاز",
+    championDeadline:"مهلت: تا سوت بازی افتتاحیه",
     championLocked:"مهلت پیش‌بینی قهرمان تمام شده",
     championSaved:"پیش‌بینی قهرمان ذخیره شد",
     everyonesPicks:"پیش‌بینی همه برای قهرمان",
     yourChampionPick:"پیش‌بینی شما", notPicked:"پیش‌بینی نشده",
     championWinner:"قهرمان واقعی", setChampion:"ثبت قهرمان",
-    championCorrect:"پیش‌بینی قهرمان درست بود! +۳۰",
     selectTeam:"انتخاب تیم...",
+    timezone:"Asia/Tehran", locale:"fa-IR",
+    showPass:"نمایش رمز", hidePass:"پنهان کردن",
+    resetPass:"ریست رمز", newPass:"رمز جدید", resetDone:"رمز ریست شد",
+    resetPassFor:"ریست رمز برای",
+    passwordReset:"رمز عبور ریست شد",
   },
   en: {
     dir:"ltr", appTitle:"World Cup 2026", appSubtitle:"Match Predictions",
@@ -63,7 +66,7 @@ const T = {
     fillAll:"Please fill all fields",
     exactScore:"Exact Score", correctDiff:"Correct Goal Diff", correctWinner:"Correct Winner",
     wrongResult:"Wrong Result", noPrediction:"No Prediction", pts:"pts",
-    switchLang:"فا", noMatches:"No matches added yet",
+    noMatches:"No matches added yet",
     matchAdded:"Match added", resultSaved:"Result saved", predictionSaved:"Prediction saved",
     predictionLocked:"⏰ Prediction deadline has passed", confirmDelete:"Are you sure?",
     myRank:"My Rank", totalPlayers:"Players", prediction:"Prediction", actual:"Result",
@@ -73,189 +76,272 @@ const T = {
     pendingResults:"matches awaiting result",
     knockoutBonus:"Knockout Bonus", advanceCorrect:"Correct winner",
     methodCorrect:"Correct method", method90:"90 min", methodET:"Extra Time", methodPK:"Penalties",
-    advanceMethod:"Method", knockoutRules:"Knockout Rules",
+    advanceMethod:"Method",
     championTab:"Champion", championPredict:"Predict Champion",
-    championDeadline:"Deadline: before opening match", championPoints:"30 points",
+    championDeadline:"Deadline: before opening match",
     championLocked:"Champion prediction deadline passed",
     championSaved:"Champion prediction saved",
     everyonesPicks:"Everyone's Champion Picks",
     yourChampionPick:"Your Pick", notPicked:"Not picked",
     championWinner:"Actual Champion", setChampion:"Set Champion",
-    championCorrect:"Champion prediction correct! +30",
     selectTeam:"Select team...",
+    timezone:"America/Toronto", locale:"en-CA",
+    showPass:"Show", hidePass:"Hide",
+    resetPass:"Reset Password", newPass:"New Password", resetDone:"Password reset",
+    resetPassFor:"Reset password for",
+    passwordReset:"Password has been reset",
+  },
+  de: {
+    dir:"ltr", appTitle:"WM 2026", appSubtitle:"Tipp-Spiel",
+    login:"Anmelden", register:"Registrieren", logout:"Abmelden",
+    username:"Benutzername", password:"Passwort", confirmPassword:"Passwort bestätigen",
+    matches:"Spiele", leaderboard:"Rangliste", myPredictions:"Meine Tipps",
+    adminPanel:"Admin", predict:"Tippen", save:"Speichern", cancel:"Abbrechen",
+    home:"Heim", away:"Gast", totalPoints:"Gesamtpunkte",
+    predicted:"Getippt", notPredicted:"Nicht getippt",
+    upcoming:"Bevorstehend", finished:"Beendet",
+    group:"Gruppenphase", round32:"Runde der 32", round16:"Achtelfinale",
+    quarter:"Viertelfinale", semi:"Halbfinale", third:"Platz 3", final:"Finale",
+    setResult:"Ergebnis eintragen", addMatch:"Spiel hinzufügen",
+    userManagement:"Nutzer", deleteUser:"Löschen",
+    usernameExists:"Benutzername bereits vergeben",
+    wrongCredentials:"Falscher Benutzername oder Passwort", passwordMismatch:"Passwörter stimmen nicht überein",
+    fillAll:"Bitte alle Felder ausfüllen",
+    exactScore:"Genaues Ergebnis", correctDiff:"Richtiger Tordiff.", correctWinner:"Richtiger Sieger",
+    wrongResult:"Falsches Ergebnis", noPrediction:"Kein Tipp", pts:"Pkt.",
+    noMatches:"Noch keine Spiele eingetragen",
+    matchAdded:"Spiel hinzugefügt", resultSaved:"Ergebnis gespeichert", predictionSaved:"Tipp gespeichert",
+    predictionLocked:"⏰ Tippabgabe beendet", confirmDelete:"Sicher?",
+    myRank:"Mein Rang", totalPlayers:"Spieler", prediction:"Tipp", actual:"Ergebnis",
+    lockedBadge:"Gesperrt", groupLabel:"Gruppe", allGroups:"Alle Gruppen",
+    editPrediction:"Bearbeiten", groupStandings:"Gruppentabelle",
+    played:"Sp", won:"S", drawn:"U", lost:"N", gf:"Tore", ga:"Geg.", team:"Team",
+    pendingResults:"Spiele ohne Ergebnis",
+    knockoutBonus:"K.O.-Bonus", advanceCorrect:"Richtiger Aufsteiger",
+    methodCorrect:"Richtige Methode", method90:"90 Min.", methodET:"Verlängerung", methodPK:"Elfmeter",
+    advanceMethod:"Methode",
+    championTab:"Weltmeister", championPredict:"Weltmeister tippen",
+    championDeadline:"Abgabe: vor dem Eröffnungsspiel",
+    championLocked:"Tippabgabe für Weltmeister beendet",
+    championSaved:"Weltmeister-Tipp gespeichert",
+    everyonesPicks:"Alle Weltmeister-Tipps",
+    yourChampionPick:"Dein Tipp", notPicked:"Nicht getippt",
+    championWinner:"Weltmeister", setChampion:"Weltmeister festlegen",
+    selectTeam:"Team auswählen...",
+    timezone:"Europe/Berlin", locale:"de-DE",
+    showPass:"Anzeigen", hidePass:"Verbergen",
+    resetPass:"Passwort zurücksetzen", newPass:"Neues Passwort", resetDone:"Passwort zurückgesetzt",
+    resetPassFor:"Passwort zurücksetzen für",
+    passwordReset:"Passwort wurde zurückgesetzt",
   },
 };
 
-// ─── ALL 32 WC TEAMS (for champion picker) ────────────────────────────────────
-const ALL_TEAMS = [
-  {name:"Argentina",flag:"🇦🇷"},{name:"Australia",flag:"🇦🇺"},{name:"Belgium",flag:"🇧🇪"},
-  {name:"Brazil",flag:"🇧🇷"},{name:"Canada",flag:"🇨🇦"},{name:"Colombia",flag:"🇨🇴"},
-  {name:"Croatia",flag:"🇭🇷"},{name:"Ecuador",flag:"🇪🇨"},{name:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},
-  {name:"France",flag:"🇫🇷"},{name:"Germany",flag:"🇩🇪"},{name:"Iran",flag:"🇮🇷"},
-  {name:"Ivory Coast",flag:"🇨🇮"},{name:"Jamaica",flag:"🇯🇲"},{name:"Japan",flag:"🇯🇵"},
-  {name:"Mexico",flag:"🇲🇽"},{name:"Morocco",flag:"🇲🇦"},{name:"Netherlands",flag:"🇳🇱"},
-  {name:"New Zealand",flag:"🇳🇿"},{name:"Nigeria",flag:"🇳🇬"},{name:"Panama",flag:"🇵🇦"},
-  {name:"Poland",flag:"🇵🇱"},{name:"Portugal",flag:"🇵🇹"},{name:"Saudi Arabia",flag:"🇸🇦"},
-  {name:"Senegal",flag:"🇸🇳"},{name:"South Korea",flag:"🇰🇷"},{name:"Spain",flag:"🇪🇸"},
-  {name:"Turkey",flag:"🇹🇷"},{name:"Ukraine",flag:"🇺🇦"},{name:"Uruguay",flag:"🇺🇾"},
-  {name:"USA",flag:"🇺🇸"},{name:"Algeria",flag:"🇩🇿"},
+const LANG_CYCLE={fa:"en",en:"de",de:"fa"};
+const LANG_BTN={fa:"EN",en:"DE",de:"فا"};
+
+const ALL_TEAMS=[
+  {name:"Algeria",flag:"🇩🇿"},{name:"Argentina",flag:"🇦🇷"},{name:"Australia",flag:"🇦🇺"},
+  {name:"Austria",flag:"🇦🇹"},{name:"Belgium",flag:"🇧🇪"},{name:"Bosnia and Herzegovina",flag:"🇧🇦"},
+  {name:"Brazil",flag:"🇧🇷"},{name:"Canada",flag:"🇨🇦"},{name:"Cape Verde",flag:"🇨🇻"},
+  {name:"Colombia",flag:"🇨🇴"},{name:"Congo DR",flag:"🇨🇩"},{name:"Croatia",flag:"🇭🇷"},
+  {name:"Curaçao",flag:"🇨🇼"},{name:"Czechia",flag:"🇨🇿"},{name:"Ecuador",flag:"🇪🇨"},
+  {name:"Egypt",flag:"🇪🇬"},{name:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},{name:"France",flag:"🇫🇷"},
+  {name:"Germany",flag:"🇩🇪"},{name:"Ghana",flag:"🇬🇭"},{name:"Haiti",flag:"🇭🇹"},
+  {name:"Iran",flag:"🇮🇷"},{name:"Iraq",flag:"🇮🇶"},{name:"Ivory Coast",flag:"🇨🇮"},
+  {name:"Japan",flag:"🇯🇵"},{name:"Jordan",flag:"🇯🇴"},{name:"Mexico",flag:"🇲🇽"},
+  {name:"Morocco",flag:"🇲🇦"},{name:"Netherlands",flag:"🇳🇱"},{name:"New Zealand",flag:"🇳🇿"},
+  {name:"Norway",flag:"🇳🇴"},{name:"Panama",flag:"🇵🇦"},{name:"Paraguay",flag:"🇵🇾"},
+  {name:"Portugal",flag:"🇵🇹"},{name:"Qatar",flag:"🇶🇦"},{name:"Saudi Arabia",flag:"🇸🇦"},
+  {name:"Scotland",flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿"},{name:"Senegal",flag:"🇸🇳"},{name:"South Africa",flag:"🇿🇦"},
+  {name:"South Korea",flag:"🇰🇷"},{name:"Spain",flag:"🇪🇸"},{name:"Sweden",flag:"🇸🇪"},
+  {name:"Switzerland",flag:"🇨🇭"},{name:"Tunisia",flag:"🇹🇳"},{name:"Türkiye",flag:"🇹🇷"},
+  {name:"Uruguay",flag:"🇺🇾"},{name:"USA",flag:"🇺🇸"},{name:"Uzbekistan",flag:"🇺🇿"},
 ];
 
-// Opening match date — champion prediction deadline
-const OPENING_MATCH_DATE = "2026-06-11T23:00Z";
+const OPENING_MATCH_DATE="2026-06-11T19:00:00Z";
 
-// ─── SCORING ──────────────────────────────────────────────────────────────────
-const GROUP_STAGES = ["group"];
-const KNOCKOUT_STAGES = ["round32","round16","quarter","semi","third","final"];
+const ALL_MATCHES=[
+  {id:"a1",home:"Mexico",homeFlag:"🇲🇽",away:"South Africa",awayFlag:"🇿🇦",date:"2026-06-11T19:00Z",stage:"group",group:"A",result:{home:"",away:""}},
+  {id:"a2",home:"South Korea",homeFlag:"🇰🇷",away:"Czechia",awayFlag:"🇨🇿",date:"2026-06-12T02:00Z",stage:"group",group:"A",result:{home:"",away:""}},
+  {id:"a3",home:"Czechia",homeFlag:"🇨🇿",away:"South Africa",awayFlag:"🇿🇦",date:"2026-06-18T16:00Z",stage:"group",group:"A",result:{home:"",away:""}},
+  {id:"a4",home:"Mexico",homeFlag:"🇲🇽",away:"South Korea",awayFlag:"🇰🇷",date:"2026-06-19T01:00Z",stage:"group",group:"A",result:{home:"",away:""}},
+  {id:"a5",home:"Mexico",homeFlag:"🇲🇽",away:"Czechia",awayFlag:"🇨🇿",date:"2026-06-25T01:00Z",stage:"group",group:"A",result:{home:"",away:""}},
+  {id:"a6",home:"South Korea",homeFlag:"🇰🇷",away:"South Africa",awayFlag:"🇿🇦",date:"2026-06-25T01:00Z",stage:"group",group:"A",result:{home:"",away:""}},
+  {id:"b1",home:"Canada",homeFlag:"🇨🇦",away:"Bosnia and Herzegovina",awayFlag:"🇧🇦",date:"2026-06-12T19:00Z",stage:"group",group:"B",result:{home:"",away:""}},
+  {id:"b2",home:"Qatar",homeFlag:"🇶🇦",away:"Switzerland",awayFlag:"🇨🇭",date:"2026-06-13T19:00Z",stage:"group",group:"B",result:{home:"",away:""}},
+  {id:"b3",home:"Switzerland",homeFlag:"🇨🇭",away:"Bosnia and Herzegovina",awayFlag:"🇧🇦",date:"2026-06-18T19:00Z",stage:"group",group:"B",result:{home:"",away:""}},
+  {id:"b4",home:"Canada",homeFlag:"🇨🇦",away:"Qatar",awayFlag:"🇶🇦",date:"2026-06-18T22:00Z",stage:"group",group:"B",result:{home:"",away:""}},
+  {id:"b5",home:"Switzerland",homeFlag:"🇨🇭",away:"Canada",awayFlag:"🇨🇦",date:"2026-06-24T19:00Z",stage:"group",group:"B",result:{home:"",away:""}},
+  {id:"b6",home:"Bosnia and Herzegovina",homeFlag:"🇧🇦",away:"Qatar",awayFlag:"🇶🇦",date:"2026-06-24T19:00Z",stage:"group",group:"B",result:{home:"",away:""}},
+  {id:"c1",home:"Brazil",homeFlag:"🇧🇷",away:"Morocco",awayFlag:"🇲🇦",date:"2026-06-13T22:00Z",stage:"group",group:"C",result:{home:"",away:""}},
+  {id:"c2",home:"Haiti",homeFlag:"🇭🇹",away:"Scotland",awayFlag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",date:"2026-06-14T01:00Z",stage:"group",group:"C",result:{home:"",away:""}},
+  {id:"c3",home:"Scotland",homeFlag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",away:"Morocco",awayFlag:"🇲🇦",date:"2026-06-19T19:00Z",stage:"group",group:"C",result:{home:"",away:""}},
+  {id:"c4",home:"Brazil",homeFlag:"🇧🇷",away:"Haiti",awayFlag:"🇭🇹",date:"2026-06-20T01:00Z",stage:"group",group:"C",result:{home:"",away:""}},
+  {id:"c5",home:"Brazil",homeFlag:"🇧🇷",away:"Scotland",awayFlag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",date:"2026-06-24T22:00Z",stage:"group",group:"C",result:{home:"",away:""}},
+  {id:"c6",home:"Morocco",homeFlag:"🇲🇦",away:"Haiti",awayFlag:"🇭🇹",date:"2026-06-24T22:00Z",stage:"group",group:"C",result:{home:"",away:""}},
+  {id:"d1",home:"USA",homeFlag:"🇺🇸",away:"Paraguay",awayFlag:"🇵🇾",date:"2026-06-13T01:00Z",stage:"group",group:"D",result:{home:"",away:""}},
+  {id:"d2",home:"Australia",homeFlag:"🇦🇺",away:"Türkiye",awayFlag:"🇹🇷",date:"2026-06-14T04:00Z",stage:"group",group:"D",result:{home:"",away:""}},
+  {id:"d3",home:"USA",homeFlag:"🇺🇸",away:"Australia",awayFlag:"🇦🇺",date:"2026-06-19T19:00Z",stage:"group",group:"D",result:{home:"",away:""}},
+  {id:"d4",home:"Türkiye",homeFlag:"🇹🇷",away:"Paraguay",awayFlag:"🇵🇾",date:"2026-06-20T04:00Z",stage:"group",group:"D",result:{home:"",away:""}},
+  {id:"d5",home:"USA",homeFlag:"🇺🇸",away:"Türkiye",awayFlag:"🇹🇷",date:"2026-06-26T02:00Z",stage:"group",group:"D",result:{home:"",away:""}},
+  {id:"d6",home:"Paraguay",homeFlag:"🇵🇾",away:"Australia",awayFlag:"🇦🇺",date:"2026-06-26T02:00Z",stage:"group",group:"D",result:{home:"",away:""}},
+  {id:"e1",home:"Germany",homeFlag:"🇩🇪",away:"Curaçao",awayFlag:"🇨🇼",date:"2026-06-14T17:00Z",stage:"group",group:"E",result:{home:"",away:""}},
+  {id:"e2",home:"Ivory Coast",homeFlag:"🇨🇮",away:"Ecuador",awayFlag:"🇪🇨",date:"2026-06-14T23:00Z",stage:"group",group:"E",result:{home:"",away:""}},
+  {id:"e3",home:"Germany",homeFlag:"🇩🇪",away:"Ivory Coast",awayFlag:"🇨🇮",date:"2026-06-20T20:00Z",stage:"group",group:"E",result:{home:"",away:""}},
+  {id:"e4",home:"Ecuador",homeFlag:"🇪🇨",away:"Curaçao",awayFlag:"🇨🇼",date:"2026-06-21T00:00Z",stage:"group",group:"E",result:{home:"",away:""}},
+  {id:"e5",home:"Ecuador",homeFlag:"🇪🇨",away:"Germany",awayFlag:"🇩🇪",date:"2026-06-25T20:00Z",stage:"group",group:"E",result:{home:"",away:""}},
+  {id:"e6",home:"Curaçao",homeFlag:"🇨🇼",away:"Ivory Coast",awayFlag:"🇨🇮",date:"2026-06-25T20:00Z",stage:"group",group:"E",result:{home:"",away:""}},
+  {id:"f1",home:"Netherlands",homeFlag:"🇳🇱",away:"Japan",awayFlag:"🇯🇵",date:"2026-06-14T20:00Z",stage:"group",group:"F",result:{home:"",away:""}},
+  {id:"f2",home:"Tunisia",homeFlag:"🇹🇳",away:"Sweden",awayFlag:"🇸🇪",date:"2026-06-15T02:00Z",stage:"group",group:"F",result:{home:"",away:""}},
+  {id:"f3",home:"Netherlands",homeFlag:"🇳🇱",away:"Sweden",awayFlag:"🇸🇪",date:"2026-06-20T17:00Z",stage:"group",group:"F",result:{home:"",away:""}},
+  {id:"f4",home:"Tunisia",homeFlag:"🇹🇳",away:"Japan",awayFlag:"🇯🇵",date:"2026-06-21T04:00Z",stage:"group",group:"F",result:{home:"",away:""}},
+  {id:"f5",home:"Tunisia",homeFlag:"🇹🇳",away:"Netherlands",awayFlag:"🇳🇱",date:"2026-06-25T23:00Z",stage:"group",group:"F",result:{home:"",away:""}},
+  {id:"f6",home:"Japan",homeFlag:"🇯🇵",away:"Sweden",awayFlag:"🇸🇪",date:"2026-06-25T23:00Z",stage:"group",group:"F",result:{home:"",away:""}},
+  {id:"g1",home:"Belgium",homeFlag:"🇧🇪",away:"Egypt",awayFlag:"🇪🇬",date:"2026-06-15T19:00Z",stage:"group",group:"G",result:{home:"",away:""}},
+  {id:"g2",home:"Iran",homeFlag:"🇮🇷",away:"New Zealand",awayFlag:"🇳🇿",date:"2026-06-16T01:00Z",stage:"group",group:"G",result:{home:"",away:""}},
+  {id:"g3",home:"Belgium",homeFlag:"🇧🇪",away:"Iran",awayFlag:"🇮🇷",date:"2026-06-21T19:00Z",stage:"group",group:"G",result:{home:"",away:""}},
+  {id:"g4",home:"New Zealand",homeFlag:"🇳🇿",away:"Egypt",awayFlag:"🇪🇬",date:"2026-06-22T01:00Z",stage:"group",group:"G",result:{home:"",away:""}},
+  {id:"g5",home:"Belgium",homeFlag:"🇧🇪",away:"New Zealand",awayFlag:"🇳🇿",date:"2026-06-26T19:00Z",stage:"group",group:"G",result:{home:"",away:""}},
+  {id:"g6",home:"Egypt",homeFlag:"🇪🇬",away:"Iran",awayFlag:"🇮🇷",date:"2026-06-26T19:00Z",stage:"group",group:"G",result:{home:"",away:""}},
+  {id:"h1",home:"Spain",homeFlag:"🇪🇸",away:"Cape Verde",awayFlag:"🇨🇻",date:"2026-06-15T16:00Z",stage:"group",group:"H",result:{home:"",away:""}},
+  {id:"h2",home:"Saudi Arabia",homeFlag:"🇸🇦",away:"Uruguay",awayFlag:"🇺🇾",date:"2026-06-15T22:00Z",stage:"group",group:"H",result:{home:"",away:""}},
+  {id:"h3",home:"Spain",homeFlag:"🇪🇸",away:"Saudi Arabia",awayFlag:"🇸🇦",date:"2026-06-21T16:00Z",stage:"group",group:"H",result:{home:"",away:""}},
+  {id:"h4",home:"Uruguay",homeFlag:"🇺🇾",away:"Cape Verde",awayFlag:"🇨🇻",date:"2026-06-21T22:00Z",stage:"group",group:"H",result:{home:"",away:""}},
+  {id:"h5",home:"Uruguay",homeFlag:"🇺🇾",away:"Spain",awayFlag:"🇪🇸",date:"2026-06-26T22:00Z",stage:"group",group:"H",result:{home:"",away:""}},
+  {id:"h6",home:"Cape Verde",homeFlag:"🇨🇻",away:"Saudi Arabia",awayFlag:"🇸🇦",date:"2026-06-26T22:00Z",stage:"group",group:"H",result:{home:"",away:""}},
+  {id:"i1",home:"France",homeFlag:"🇫🇷",away:"Senegal",awayFlag:"🇸🇳",date:"2026-06-16T19:00Z",stage:"group",group:"I",result:{home:"",away:""}},
+  {id:"i2",home:"Iraq",homeFlag:"🇮🇶",away:"Norway",awayFlag:"🇳🇴",date:"2026-06-16T22:00Z",stage:"group",group:"I",result:{home:"",away:""}},
+  {id:"i3",home:"France",homeFlag:"🇫🇷",away:"Iraq",awayFlag:"🇮🇶",date:"2026-06-22T21:00Z",stage:"group",group:"I",result:{home:"",away:""}},
+  {id:"i4",home:"Norway",homeFlag:"🇳🇴",away:"Senegal",awayFlag:"🇸🇳",date:"2026-06-23T00:00Z",stage:"group",group:"I",result:{home:"",away:""}},
+  {id:"i5",home:"Norway",homeFlag:"🇳🇴",away:"France",awayFlag:"🇫🇷",date:"2026-06-26T19:00Z",stage:"group",group:"I",result:{home:"",away:""}},
+  {id:"i6",home:"Senegal",homeFlag:"🇸🇳",away:"Iraq",awayFlag:"🇮🇶",date:"2026-06-26T19:00Z",stage:"group",group:"I",result:{home:"",away:""}},
+  {id:"j1",home:"Argentina",homeFlag:"🇦🇷",away:"Algeria",awayFlag:"🇩🇿",date:"2026-06-17T01:00Z",stage:"group",group:"J",result:{home:"",away:""}},
+  {id:"j2",home:"Austria",homeFlag:"🇦🇹",away:"Jordan",awayFlag:"🇯🇴",date:"2026-06-17T04:00Z",stage:"group",group:"J",result:{home:"",away:""}},
+  {id:"j3",home:"Argentina",homeFlag:"🇦🇷",away:"Austria",awayFlag:"🇦🇹",date:"2026-06-22T17:00Z",stage:"group",group:"J",result:{home:"",away:""}},
+  {id:"j4",home:"Jordan",homeFlag:"🇯🇴",away:"Algeria",awayFlag:"🇩🇿",date:"2026-06-23T04:00Z",stage:"group",group:"J",result:{home:"",away:""}},
+  {id:"j5",home:"Argentina",homeFlag:"🇦🇷",away:"Jordan",awayFlag:"🇯🇴",date:"2026-06-27T22:00Z",stage:"group",group:"J",result:{home:"",away:""}},
+  {id:"j6",home:"Algeria",homeFlag:"🇩🇿",away:"Austria",awayFlag:"🇦🇹",date:"2026-06-27T22:00Z",stage:"group",group:"J",result:{home:"",away:""}},
+  {id:"k1",home:"Portugal",homeFlag:"🇵🇹",away:"Congo DR",awayFlag:"🇨🇩",date:"2026-06-17T17:00Z",stage:"group",group:"K",result:{home:"",away:""}},
+  {id:"k2",home:"Uzbekistan",homeFlag:"🇺🇿",away:"Colombia",awayFlag:"🇨🇴",date:"2026-06-18T01:00Z",stage:"group",group:"K",result:{home:"",away:""}},
+  {id:"k3",home:"Portugal",homeFlag:"🇵🇹",away:"Uzbekistan",awayFlag:"🇺🇿",date:"2026-06-23T17:00Z",stage:"group",group:"K",result:{home:"",away:""}},
+  {id:"k4",home:"Colombia",homeFlag:"🇨🇴",away:"Congo DR",awayFlag:"🇨🇩",date:"2026-06-24T01:00Z",stage:"group",group:"K",result:{home:"",away:""}},
+  {id:"k5",home:"Portugal",homeFlag:"🇵🇹",away:"Colombia",awayFlag:"🇨🇴",date:"2026-06-27T22:00Z",stage:"group",group:"K",result:{home:"",away:""}},
+  {id:"k6",home:"Congo DR",homeFlag:"🇨🇩",away:"Uzbekistan",awayFlag:"🇺🇿",date:"2026-06-27T22:00Z",stage:"group",group:"K",result:{home:"",away:""}},
+  {id:"l1",home:"England",homeFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",away:"Croatia",awayFlag:"🇭🇷",date:"2026-06-17T20:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+  {id:"l2",home:"Ghana",homeFlag:"🇬🇭",away:"Panama",awayFlag:"🇵🇦",date:"2026-06-17T23:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+  {id:"l3",home:"England",homeFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",away:"Ghana",awayFlag:"🇬🇭",date:"2026-06-23T20:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+  {id:"l4",home:"Panama",homeFlag:"🇵🇦",away:"Croatia",awayFlag:"🇭🇷",date:"2026-06-23T23:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+  {id:"l5",home:"England",homeFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",away:"Panama",awayFlag:"🇵🇦",date:"2026-06-27T22:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+  {id:"l6",home:"Croatia",homeFlag:"🇭🇷",away:"Ghana",awayFlag:"🇬🇭",date:"2026-06-27T22:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+];
 
-function calcPoints(pred, actual, matchStage) {
-  if (!pred || pred.home==="" || pred.away==="" || pred.home===undefined) return 0;
-  if (!actual || actual.home==="" || actual.away==="") return 0;
-  const ph=parseInt(pred.home), pa=parseInt(pred.away);
-  const ah=parseInt(actual.home), aa=parseInt(actual.away);
-  if (isNaN(ph)||isNaN(pa)||isNaN(ah)||isNaN(aa)) return 0;
+const STAGE_ORDER=["group","round32","round16","quarter","semi","third","final"];
+const KNOCKOUT_STAGES=["round32","round16","quarter","semi","third","final"];
+const sortByDate=arr=>[...arr].sort((a,b)=>new Date(a.date)-new Date(b.date));
+const stageLabel=(s,t)=>({group:t.group,round32:t.round32,round16:t.round16,quarter:t.quarter,semi:t.semi,third:t.third,final:t.final}[s]||s);
 
-  // Base points (same for all stages)
-  let base = 0;
-  if (ph===ah && pa===aa) base=10;
-  else if (ph-pa===ah-aa) base=7;
-  else {
-    const pw=ph>pa?"H":ph<pa?"A":"D";
-    const aw=ah>aa?"H":ah<aa?"A":"D";
-    base = pw===aw ? 5 : 2;
-  }
-
-  // Knockout bonus
-  let bonus = 0;
-  if (KNOCKOUT_STAGES.includes(matchStage) && actual.winner && pred.winner) {
-    if (pred.winner === actual.winner) {
-      bonus += 3;
-      if (pred.method && actual.method && pred.method===actual.method) bonus += 2;
-    }
-  }
-  return base + bonus;
+function fmtDate(dateStr,t,short=false){
+  const d=new Date(dateStr);
+  if(short) return d.toLocaleDateString(t.locale,{timeZone:t.timezone,month:"short",day:"numeric"});
+  return d.toLocaleString(t.locale,{timeZone:t.timezone,weekday:"short",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
 }
 
-function calcChampionPoints(pred, actualChampion) {
-  if (!pred || !actualChampion) return 0;
-  return pred === actualChampion ? 30 : 0;
+function calcPoints(pred,actual,stage){
+  if(!pred||pred.home===""||pred.away===""||pred.home===undefined) return 0;
+  if(!actual||actual.home===""||actual.away==="") return 0;
+  const ph=parseInt(pred.home),pa=parseInt(pred.away),ah=parseInt(actual.home),aa=parseInt(actual.away);
+  if(isNaN(ph)||isNaN(pa)||isNaN(ah)||isNaN(aa)) return 0;
+  let base=0;
+  if(ph===ah&&pa===aa) base=10;
+  else if(ph-pa===ah-aa) base=7;
+  else{const pw=ph>pa?"H":ph<pa?"A":"D";const aw=ah>aa?"H":ah<aa?"A":"D";base=pw===aw?5:2;}
+  let bonus=0;
+  if(KNOCKOUT_STAGES.includes(stage)&&actual.winner&&pred.winner){
+    if(pred.winner===actual.winner){bonus+=3;if(pred.method&&pred.method===actual.method)bonus+=2;}
+  }
+  return base+bonus;
 }
+function calcChampionPoints(pick,winner){return pick&&winner&&pick===winner?30:0;}
+function ptsCls(p){return p>=10?"pts-10":p>=7?"pts-7":p>=5?"pts-5":p>=2?"pts-2":"pts-0";}
 
-function ptsCls(p){ return p>=10?"pts-10":p>=7?"pts-7":p>=5?"pts-5":p>=2?"pts-2":"pts-0"; }
-
-// ─── GROUP STANDINGS ──────────────────────────────────────────────────────────
-function calcGroupStandings(matches) {
+function calcGroupStandings(matches){
   const groups={};
   matches.filter(m=>m.stage==="group").forEach(m=>{
-    if(!groups[m.group]) groups[m.group]={};
+    if(!groups[m.group])groups[m.group]={};
     [m.home,m.away].forEach(team=>{
-      if(!groups[m.group][team]) groups[m.group][team]={team,flag:team===m.home?m.homeFlag:m.awayFlag,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+      if(!groups[m.group][team])groups[m.group][team]={team,flag:team===m.home?m.homeFlag:m.awayFlag,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
     });
-    if(m.result.home===""||m.result.away==="") return;
+    if(m.result.home===""||m.result.away==="")return;
     const ah=parseInt(m.result.home),aa=parseInt(m.result.away);
     const ht=groups[m.group][m.home],at=groups[m.group][m.away];
     ht.p++;at.p++;ht.gf+=ah;ht.ga+=aa;at.gf+=aa;at.ga+=ah;
-    if(ah>aa){ht.w++;ht.pts+=3;at.l++;}
-    else if(ah<aa){at.w++;at.pts+=3;ht.l++;}
-    else{ht.d++;at.d++;ht.pts++;at.pts++;}
+    if(ah>aa){ht.w++;ht.pts+=3;at.l++;}else if(ah<aa){at.w++;at.pts+=3;ht.l++;}else{ht.d++;at.d++;ht.pts++;at.pts++;}
   });
   const sorted={};
   Object.entries(groups).forEach(([g,teams])=>{
     sorted[g]=Object.values(teams).sort((a,b)=>{
-      if(b.pts!==a.pts) return b.pts-a.pts;
-      const d=(b.gf-b.ga)-(a.gf-a.ga); if(d!==0) return d;
+      if(b.pts!==a.pts)return b.pts-a.pts;
+      const d=(b.gf-b.ga)-(a.gf-a.ga);if(d!==0)return d;
       return b.gf-a.gf;
     });
   });
   return sorted;
 }
 
-// ─── ALL 48 GROUP MATCHES ─────────────────────────────────────────────────────
-const ALL_MATCHES = [
-  {id:"g-a1",home:"Mexico",homeFlag:"🇲🇽",away:"Poland",awayFlag:"🇵🇱",date:"2026-06-11T23:00Z",stage:"group",group:"A",result:{home:"",away:""}},
-  {id:"g-a2",home:"Saudi Arabia",homeFlag:"🇸🇦",away:"Argentina",awayFlag:"🇦🇷",date:"2026-06-12T02:00Z",stage:"group",group:"A",result:{home:"",away:""}},
-  {id:"g-a3",home:"Poland",homeFlag:"🇵🇱",away:"Saudi Arabia",awayFlag:"🇸🇦",date:"2026-06-16T22:00Z",stage:"group",group:"A",result:{home:"",away:""}},
-  {id:"g-a4",home:"Argentina",homeFlag:"🇦🇷",away:"Mexico",awayFlag:"🇲🇽",date:"2026-06-17T01:00Z",stage:"group",group:"A",result:{home:"",away:""}},
-  {id:"g-a5",home:"Poland",homeFlag:"🇵🇱",away:"Argentina",awayFlag:"🇦🇷",date:"2026-06-21T22:00Z",stage:"group",group:"A",result:{home:"",away:""}},
-  {id:"g-a6",home:"Saudi Arabia",homeFlag:"🇸🇦",away:"Mexico",awayFlag:"🇲🇽",date:"2026-06-21T22:00Z",stage:"group",group:"A",result:{home:"",away:""}},
-  {id:"g-b1",home:"USA",homeFlag:"🇺🇸",away:"Jamaica",awayFlag:"🇯🇲",date:"2026-06-12T23:00Z",stage:"group",group:"B",result:{home:"",away:""}},
-  {id:"g-b2",home:"Panama",homeFlag:"🇵🇦",away:"Canada",awayFlag:"🇨🇦",date:"2026-06-13T02:00Z",stage:"group",group:"B",result:{home:"",away:""}},
-  {id:"g-b3",home:"Jamaica",homeFlag:"🇯🇲",away:"Panama",awayFlag:"🇵🇦",date:"2026-06-17T22:00Z",stage:"group",group:"B",result:{home:"",away:""}},
-  {id:"g-b4",home:"Canada",homeFlag:"🇨🇦",away:"USA",awayFlag:"🇺🇸",date:"2026-06-18T01:00Z",stage:"group",group:"B",result:{home:"",away:""}},
-  {id:"g-b5",home:"Jamaica",homeFlag:"🇯🇲",away:"Canada",awayFlag:"🇨🇦",date:"2026-06-22T22:00Z",stage:"group",group:"B",result:{home:"",away:""}},
-  {id:"g-b6",home:"Panama",homeFlag:"🇵🇦",away:"USA",awayFlag:"🇺🇸",date:"2026-06-22T22:00Z",stage:"group",group:"B",result:{home:"",away:""}},
-  {id:"g-c1",home:"Morocco",homeFlag:"🇲🇦",away:"Ecuador",awayFlag:"🇪🇨",date:"2026-06-13T19:00Z",stage:"group",group:"C",result:{home:"",away:""}},
-  {id:"g-c2",home:"Belgium",homeFlag:"🇧🇪",away:"Ukraine",awayFlag:"🇺🇦",date:"2026-06-13T22:00Z",stage:"group",group:"C",result:{home:"",away:""}},
-  {id:"g-c3",home:"Ecuador",homeFlag:"🇪🇨",away:"Belgium",awayFlag:"🇧🇪",date:"2026-06-17T19:00Z",stage:"group",group:"C",result:{home:"",away:""}},
-  {id:"g-c4",home:"Ukraine",homeFlag:"🇺🇦",away:"Morocco",awayFlag:"🇲🇦",date:"2026-06-18T22:00Z",stage:"group",group:"C",result:{home:"",away:""}},
-  {id:"g-c5",home:"Ecuador",homeFlag:"🇪🇨",away:"Ukraine",awayFlag:"🇺🇦",date:"2026-06-22T19:00Z",stage:"group",group:"C",result:{home:"",away:""}},
-  {id:"g-c6",home:"Belgium",homeFlag:"🇧🇪",away:"Morocco",awayFlag:"🇲🇦",date:"2026-06-22T19:00Z",stage:"group",group:"C",result:{home:"",away:""}},
-  {id:"g-d1",home:"Iran",homeFlag:"🇮🇷",away:"New Zealand",awayFlag:"🇳🇿",date:"2026-06-14T19:00Z",stage:"group",group:"D",result:{home:"",away:""}},
-  {id:"g-d2",home:"Portugal",homeFlag:"🇵🇹",away:"Senegal",awayFlag:"🇸🇳",date:"2026-06-14T22:00Z",stage:"group",group:"D",result:{home:"",away:""}},
-  {id:"g-d3",home:"New Zealand",homeFlag:"🇳🇿",away:"Portugal",awayFlag:"🇵🇹",date:"2026-06-18T19:00Z",stage:"group",group:"D",result:{home:"",away:""}},
-  {id:"g-d4",home:"Senegal",homeFlag:"🇸🇳",away:"Iran",awayFlag:"🇮🇷",date:"2026-06-19T22:00Z",stage:"group",group:"D",result:{home:"",away:""}},
-  {id:"g-d5",home:"New Zealand",homeFlag:"🇳🇿",away:"Senegal",awayFlag:"🇸🇳",date:"2026-06-23T19:00Z",stage:"group",group:"D",result:{home:"",away:""}},
-  {id:"g-d6",home:"Portugal",homeFlag:"🇵🇹",away:"Iran",awayFlag:"🇮🇷",date:"2026-06-23T19:00Z",stage:"group",group:"D",result:{home:"",away:""}},
-  {id:"g-e1",home:"Germany",homeFlag:"🇩🇪",away:"Japan",awayFlag:"🇯🇵",date:"2026-06-14T22:00Z",stage:"group",group:"E",result:{home:"",away:""}},
-  {id:"g-e2",home:"Australia",homeFlag:"🇦🇺",away:"Spain",awayFlag:"🇪🇸",date:"2026-06-15T01:00Z",stage:"group",group:"E",result:{home:"",away:""}},
-  {id:"g-e3",home:"Japan",homeFlag:"🇯🇵",away:"Australia",awayFlag:"🇦🇺",date:"2026-06-18T22:00Z",stage:"group",group:"E",result:{home:"",away:""}},
-  {id:"g-e4",home:"Spain",homeFlag:"🇪🇸",away:"Germany",awayFlag:"🇩🇪",date:"2026-06-19T01:00Z",stage:"group",group:"E",result:{home:"",away:""}},
-  {id:"g-e5",home:"Japan",homeFlag:"🇯🇵",away:"Spain",awayFlag:"🇪🇸",date:"2026-06-23T22:00Z",stage:"group",group:"E",result:{home:"",away:""}},
-  {id:"g-e6",home:"Australia",homeFlag:"🇦🇺",away:"Germany",awayFlag:"🇩🇪",date:"2026-06-23T22:00Z",stage:"group",group:"E",result:{home:"",away:""}},
-  {id:"g-f1",home:"Brazil",homeFlag:"🇧🇷",away:"Croatia",awayFlag:"🇭🇷",date:"2026-06-15T19:00Z",stage:"group",group:"F",result:{home:"",away:""}},
-  {id:"g-f2",home:"Netherlands",homeFlag:"🇳🇱",away:"South Korea",awayFlag:"🇰🇷",date:"2026-06-15T22:00Z",stage:"group",group:"F",result:{home:"",away:""}},
-  {id:"g-f3",home:"Croatia",homeFlag:"🇭🇷",away:"Netherlands",awayFlag:"🇳🇱",date:"2026-06-19T19:00Z",stage:"group",group:"F",result:{home:"",away:""}},
-  {id:"g-f4",home:"South Korea",homeFlag:"🇰🇷",away:"Brazil",awayFlag:"🇧🇷",date:"2026-06-20T22:00Z",stage:"group",group:"F",result:{home:"",away:""}},
-  {id:"g-f5",home:"Croatia",homeFlag:"🇭🇷",away:"South Korea",awayFlag:"🇰🇷",date:"2026-06-24T19:00Z",stage:"group",group:"F",result:{home:"",away:""}},
-  {id:"g-f6",home:"Netherlands",homeFlag:"🇳🇱",away:"Brazil",awayFlag:"🇧🇷",date:"2026-06-24T19:00Z",stage:"group",group:"F",result:{home:"",away:""}},
-  {id:"g-g1",home:"France",homeFlag:"🇫🇷",away:"Nigeria",awayFlag:"🇳🇬",date:"2026-06-15T22:00Z",stage:"group",group:"G",result:{home:"",away:""}},
-  {id:"g-g2",home:"Algeria",homeFlag:"🇩🇿",away:"England",awayFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",date:"2026-06-16T01:00Z",stage:"group",group:"G",result:{home:"",away:""}},
-  {id:"g-g3",home:"Nigeria",homeFlag:"🇳🇬",away:"Algeria",awayFlag:"🇩🇿",date:"2026-06-20T19:00Z",stage:"group",group:"G",result:{home:"",away:""}},
-  {id:"g-g4",home:"England",homeFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",away:"France",awayFlag:"🇫🇷",date:"2026-06-20T22:00Z",stage:"group",group:"G",result:{home:"",away:""}},
-  {id:"g-g5",home:"Nigeria",homeFlag:"🇳🇬",away:"England",awayFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",date:"2026-06-24T22:00Z",stage:"group",group:"G",result:{home:"",away:""}},
-  {id:"g-g6",home:"Algeria",homeFlag:"🇩🇿",away:"France",awayFlag:"🇫🇷",date:"2026-06-24T22:00Z",stage:"group",group:"G",result:{home:"",away:""}},
-  {id:"g-h1",home:"Colombia",homeFlag:"🇨🇴",away:"Ivory Coast",awayFlag:"🇨🇮",date:"2026-06-16T19:00Z",stage:"group",group:"H",result:{home:"",away:""}},
-  {id:"g-h2",home:"Turkey",homeFlag:"🇹🇷",away:"Uruguay",awayFlag:"🇺🇾",date:"2026-06-16T22:00Z",stage:"group",group:"H",result:{home:"",away:""}},
-  {id:"g-h3",home:"Ivory Coast",homeFlag:"🇨🇮",away:"Turkey",awayFlag:"🇹🇷",date:"2026-06-20T19:00Z",stage:"group",group:"H",result:{home:"",away:""}},
-  {id:"g-h4",home:"Uruguay",homeFlag:"🇺🇾",away:"Colombia",awayFlag:"🇨🇴",date:"2026-06-20T22:00Z",stage:"group",group:"H",result:{home:"",away:""}},
-  {id:"g-h5",home:"Ivory Coast",homeFlag:"🇨🇮",away:"Uruguay",awayFlag:"🇺🇾",date:"2026-06-24T19:00Z",stage:"group",group:"H",result:{home:"",away:""}},
-  {id:"g-h6",home:"Turkey",homeFlag:"🇹🇷",away:"Colombia",awayFlag:"🇨🇴",date:"2026-06-24T19:00Z",stage:"group",group:"H",result:{home:"",away:""}},
-];
-
-const STAGE_ORDER=["group","round32","round16","quarter","semi","third","final"];
-const sortByDate=arr=>[...arr].sort((a,b)=>new Date(a.date)-new Date(b.date));
-const stageLabel=(s,t)=>({group:t.group,round32:t.round32,round16:t.round16,quarter:t.quarter,semi:t.semi,third:t.third,final:t.final}[s]||s);
-
-// ─── FIREBASE ─────────────────────────────────────────────────────────────────
 async function fbSet(path,value){const[c,i]=path.split("/");await setDoc(doc(db,c,i),{value});}
 
-// ─── APP ──────────────────────────────────────────────────────────────────────
+// ─── PASSWORD INPUT COMPONENT ─────────────────────────────────────────────────
+function PassInput({placeholder,value,onChange,onKeyDown,name,id,t}){
+  const[show,setShow]=useState(false);
+  return(
+    <div style={{position:"relative"}}>
+      <input
+        className="inp" type={show?"text":"password"}
+        placeholder={placeholder} value={value} onChange={onChange}
+        onKeyDown={onKeyDown} name={name||"password"} id={id}
+        autoComplete={name==="new-password"?"new-password":"current-password"}
+        style={{paddingRight:lang==="fa"?"14px":"70px",paddingLeft:lang==="fa"?"70px":"14px"}}
+      />
+      <button type="button" onClick={()=>setShow(s=>!s)}
+        style={{position:"absolute",top:"50%",transform:"translateY(-50%)",
+          [document.documentElement.dir==="rtl"?"left":"right"]:"10px",
+          background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#8899bb",fontFamily:"inherit",padding:"2px 4px"}}>
+        {show?"🙈":"👁️"}
+      </button>
+    </div>
+  );
+}
+
+// workaround: expose lang to PassInput via module-level var
+let lang="fa";
+
 export default function App(){
-  const [lang,setLang]=useState("fa");
-  const t=T[lang];
-  const [users,setUsers]=useState({});
-  const [matches,setMatches]=useState([]);
-  const [predictions,setPredictions]=useState({});
-  const [championData,setChampionData]=useState({picks:{},winner:""});
-  const [currentUser,setCurrentUser]=useState(null);
-  const [tab,setTab]=useState("matches");
-  const [authMode,setAuthMode]=useState("login");
-  const [form,setForm]=useState({username:"",password:"",confirm:""});
-  const [authError,setAuthError]=useState("");
-  const [toast,setToast]=useState("");
-  const [loading,setLoading]=useState(true);
+  const[_lang,setLang]=useState("fa");
+  lang=_lang;
+  const t=T[_lang];
+  const[users,setUsers]=useState({});
+  const[matches,setMatches]=useState([]);
+  const[predictions,setPredictions]=useState({});
+  const[championData,setChampionData]=useState({picks:{},winner:""});
+  const[currentUser,setCurrentUser]=useState(null);
+  const[tab,setTab]=useState("matches");
+  const[authMode,setAuthMode]=useState("login");
+  const[form,setForm]=useState({username:"",password:"",confirm:""});
+  const[authError,setAuthError]=useState("");
+  const[toast,setToast]=useState("");
+  const[loading,setLoading]=useState(true);
   const ADMIN_PASS="admin2026";
 
   useEffect(()=>{
     const u1=onSnapshot(doc(db,"data","matches"),s=>{
-      if(s.exists()) setMatches(sortByDate(s.data().value));
+      if(s.exists())setMatches(sortByDate(s.data().value));
       else{setMatches(sortByDate(ALL_MATCHES));fbSet("data/matches",ALL_MATCHES);}
     });
     const u2=onSnapshot(doc(db,"data","users"),s=>{setUsers(s.exists()?s.data().value:{});});
     const u3=onSnapshot(doc(db,"data","predictions"),s=>{setPredictions(s.exists()?s.data().value:{});});
     const u4=onSnapshot(doc(db,"data","champion"),s=>{setChampionData(s.exists()?s.data().value:{picks:{},winner:""});});
     const sess=sessionStorage.getItem("wc26_user");
-    if(sess) setCurrentUser(sess);
+    if(sess)setCurrentUser(sess);
     setLoading(false);
     return()=>{u1();u2();u3();u4();};
   },[]);
@@ -268,19 +354,19 @@ export default function App(){
 
   const handleAuth=async()=>{
     const{username,password,confirm}=form;
-    if(!username.trim()||!password) return setAuthError(t.fillAll);
+    if(!username.trim()||!password)return setAuthError(t.fillAll);
     if(username==="admin"){
-      if(password!==ADMIN_PASS) return setAuthError(t.wrongCredentials);
+      if(password!==ADMIN_PASS)return setAuthError(t.wrongCredentials);
       setCurrentUser("admin");sessionStorage.setItem("wc26_user","admin");setAuthError("");return;
     }
     if(authMode==="register"){
-      if(password!==confirm) return setAuthError(t.passwordMismatch);
-      if(users[username]) return setAuthError(t.usernameExists);
+      if(password!==confirm)return setAuthError(t.passwordMismatch);
+      if(users[username])return setAuthError(t.usernameExists);
       const nu={...users,[username]:{password,createdAt:Date.now()}};
       await saveUsers(nu);setCurrentUser(username);sessionStorage.setItem("wc26_user",username);
       setAuthError("");setForm({username:"",password:"",confirm:""});
-    } else {
-      if(!users[username]||users[username].password!==password) return setAuthError(t.wrongCredentials);
+    }else{
+      if(!users[username]||users[username].password!==password)return setAuthError(t.wrongCredentials);
       setCurrentUser(username);sessionStorage.setItem("wc26_user",username);
       setAuthError("");setForm({username:"",password:"",confirm:""});
     }
@@ -294,24 +380,19 @@ export default function App(){
     const scores={};
     Object.keys(users).forEach(u=>{scores[u]=0;});
     matches.forEach(m=>{
-      if(m.result.home===""||m.result.away==="") return;
-      Object.keys(predictions).forEach(u=>{
-        scores[u]=(scores[u]||0)+calcPoints(predictions[u]?.[m.id],m.result,m.stage);
-      });
+      if(m.result.home===""||m.result.away==="")return;
+      Object.keys(predictions).forEach(u=>{scores[u]=(scores[u]||0)+calcPoints(predictions[u]?.[m.id],m.result,m.stage);});
     });
-    // Add champion points
     if(championData.winner){
-      Object.keys(users).forEach(u=>{
-        scores[u]=(scores[u]||0)+calcChampionPoints(championData.picks?.[u],championData.winner);
-      });
+      Object.keys(users).forEach(u=>{scores[u]=(scores[u]||0)+calcChampionPoints(championData.picks?.[u],championData.winner);});
     }
     return Object.entries(scores).sort((a,b)=>b[1]-a[1]).map(([user,pts],i)=>({user,pts,rank:i+1}));
   };
 
-  if(loading) return <Loader/>;
+  if(loading)return <Loader/>;
 
   return(
-    <div dir={t.dir} style={{minHeight:"100vh",background:"linear-gradient(135deg,#050d1a 0%,#0a1628 60%,#06101e 100%)",color:"#e8eaf0",fontFamily:lang==="fa"?"'Vazirmatn','Tahoma',sans-serif":"'Exo 2','Segoe UI',sans-serif"}}>
+    <div dir={t.dir} style={{minHeight:"100vh",background:"linear-gradient(135deg,#050d1a 0%,#0a1628 60%,#06101e 100%)",color:"#e8eaf0",fontFamily:_lang==="fa"?"'Vazirmatn','Tahoma',sans-serif":"'Exo 2','Segoe UI',sans-serif"}}>
       <style>{CSS}</style>
       <header style={{background:"rgba(0,0,0,.5)",backdropFilter:"blur(14px)",borderBottom:"1px solid rgba(240,192,64,.18)",padding:"0 16px",position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:940,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:58}}>
@@ -323,37 +404,36 @@ export default function App(){
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <button className="btn btn-ghost sm" onClick={()=>setLang(lang==="fa"?"en":"fa")}>{t.switchLang}</button>
-            {currentUser&&<><span style={{fontSize:12,color:"#aab"}}>👤 {currentUser}</span><button className="btn btn-ghost sm" onClick={logout}>{t.logout}</button></>}
+            <button className="btn btn-ghost sm" onClick={()=>setLang(LANG_CYCLE[_lang])} style={{fontWeight:700,minWidth:36}}>{LANG_BTN[_lang]}</button>
+            {currentUser&&<><span style={{fontSize:12,color:"#aab",maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>👤 {currentUser}</span><button className="btn btn-ghost sm" onClick={logout}>{t.logout}</button></>}
           </div>
         </div>
       </header>
 
       <div style={{maxWidth:940,margin:"0 auto",padding:"0 12px 80px"}}>
         {!currentUser
-          ? <AuthPanel t={t} form={form} setForm={setForm} authMode={authMode} setAuthMode={setAuthMode} authError={authError} onSubmit={handleAuth}/>
-          : <>
-              <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,.08)",marginBottom:16,overflowX:"auto",paddingTop:8}}>
-                {["matches","champion","standings","leaderboard","myPredictions",...(isAdmin?["adminPanel"]:[])].map(k=>(
-                  <button key={k} className={`tab-btn${tab===k?" active":""}`} onClick={()=>setTab(k)}>
-                    {k==="matches"?"⚽ "+t.matches:k==="champion"?"🏆 "+t.championTab:k==="standings"?"📊 "+t.groupStandings:k==="leaderboard"?"🥇 "+t.leaderboard:k==="myPredictions"?"📋 "+t.myPredictions:"⚙️ "+t.adminPanel}
-                  </button>
-                ))}
-              </div>
-              <div className="animate-in">
-                {tab==="matches"       && <MatchesTab t={t} lang={lang} matches={matches} predictions={predictions} currentUser={currentUser} savePreds={savePreds} showToast={showToast}/>}
-                {tab==="champion"      && <ChampionTab t={t} lang={lang} users={users} championData={championData} saveChampion={saveChampion} currentUser={currentUser} isAdmin={isAdmin} championLocked={championLocked} showToast={showToast}/>}
-                {tab==="standings"     && <StandingsTab t={t} lang={lang} standings={calcGroupStandings(matches)} matches={matches}/>}
-                {tab==="leaderboard"   && <LeaderboardTab t={t} leaderboard={getLeaderboard()} currentUser={currentUser} championData={championData}/>}
-                {tab==="myPredictions" && <MyPredsTab t={t} matches={matches} predictions={predictions} currentUser={currentUser} championData={championData}/>}
-                {tab==="adminPanel"&&isAdmin&&<AdminTab t={t} lang={lang} matches={matches} saveMatches={saveMatches} users={users} saveUsers={saveUsers} predictions={predictions} savePreds={savePreds} championData={championData} saveChampion={saveChampion} showToast={showToast}/>}
-              </div>
-            </>
+          ?<AuthPanel t={t} form={form} setForm={setForm} authMode={authMode} setAuthMode={setAuthMode} authError={authError} onSubmit={handleAuth}/>
+          :<>
+            <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,.08)",marginBottom:16,overflowX:"auto",paddingTop:8}}>
+              {["matches","champion","standings","leaderboard","myPredictions",...(isAdmin?["adminPanel"]:[])].map(k=>(
+                <button key={k} className={`tab-btn${tab===k?" active":""}`} onClick={()=>setTab(k)}>
+                  {k==="matches"?"⚽ "+t.matches:k==="champion"?"🏆 "+t.championTab:k==="standings"?"📊 "+t.groupStandings:k==="leaderboard"?"🥇 "+t.leaderboard:k==="myPredictions"?"📋 "+t.myPredictions:"⚙️ "+t.adminPanel}
+                </button>
+              ))}
+            </div>
+            <div className="animate-in">
+              {tab==="matches"       &&<MatchesTab t={t} matches={matches} predictions={predictions} currentUser={currentUser} savePreds={savePreds} showToast={showToast}/>}
+              {tab==="champion"      &&<ChampionTab t={t} users={users} championData={championData} saveChampion={saveChampion} currentUser={currentUser} championLocked={championLocked} showToast={showToast}/>}
+              {tab==="standings"     &&<StandingsTab t={t} standings={calcGroupStandings(matches)} matches={matches}/>}
+              {tab==="leaderboard"   &&<LeaderboardTab t={t} leaderboard={getLeaderboard()} currentUser={currentUser} championData={championData}/>}
+              {tab==="myPredictions"&&<MyPredsTab t={t} matches={matches} predictions={predictions} currentUser={currentUser} championData={championData}/>}
+              {tab==="adminPanel"&&isAdmin&&<AdminTab t={t} matches={matches} saveMatches={saveMatches} users={users} saveUsers={saveUsers} predictions={predictions} savePreds={savePreds} championData={championData} saveChampion={saveChampion} showToast={showToast}/>}
+            </div>
+          </>
         }
       </div>
 
       {toast&&<div className="toast">✓ {toast}</div>}
-
       <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(5,13,26,.97)",borderTop:"1px solid rgba(240,192,64,.12)",padding:"5px 12px",display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",fontSize:11}}>
         <span className="pts-pill pts-10">10 {t.pts}: {t.exactScore}</span>
         <span className="pts-pill pts-7">7 {t.pts}: {t.correctDiff}</span>
@@ -366,7 +446,7 @@ export default function App(){
   );
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
+// ─── AUTH PANEL ───────────────────────────────────────────────────────────────
 function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
   return(
     <div style={{display:"flex",justifyContent:"center",alignItems:"center",minHeight:"82vh"}}>
@@ -385,9 +465,19 @@ function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
             ))}
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            <input className="inp" placeholder={t.username} value={form.username} onChange={e=>setForm(f=>({...f,username:e.target.value}))}/>
-            <input className="inp" type="password" placeholder={t.password} value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&onSubmit()}/>
-            {authMode==="register"&&<input className="inp" type="password" placeholder={t.confirmPassword} value={form.confirm} onChange={e=>setForm(f=>({...f,confirm:e.target.value}))}/>}
+            <input className="inp" placeholder={t.username} value={form.username}
+              onChange={e=>setForm(f=>({...f,username:e.target.value}))}
+              name="username" autoComplete="username"/>
+            <PassInput t={t} placeholder={t.password} value={form.password}
+              onChange={e=>setForm(f=>({...f,password:e.target.value}))}
+              onKeyDown={e=>e.key==="Enter"&&onSubmit()}
+              name={authMode==="register"?"new-password":"current-password"}
+              id="main-pass"/>
+            {authMode==="register"&&
+              <PassInput t={t} placeholder={t.confirmPassword} value={form.confirm}
+                onChange={e=>setForm(f=>({...f,confirm:e.target.value}))}
+                name="new-password" id="confirm-pass"/>
+            }
             {authError&&<div style={{color:"#ff6b6b",fontSize:12,padding:"5px 10px",background:"rgba(220,50,50,.1)",borderRadius:6}}>{authError}</div>}
             <button className="btn btn-primary" onClick={onSubmit} style={{marginTop:4,fontFamily:"inherit"}}>{authMode==="login"?t.login:t.register}</button>
           </div>
@@ -397,126 +487,38 @@ function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
   );
 }
 
-// ─── CHAMPION TAB ─────────────────────────────────────────────────────────────
-function ChampionTab({t,lang,users,championData,saveChampion,currentUser,isAdmin,championLocked,showToast}){
-  const [sel,setSel]=useState("");
-  const myPick=championData.picks?.[currentUser]||"";
-  const winner=championData.winner||"";
-
-  const doSave=async()=>{
-    if(!sel) return;
-    const np={...championData,picks:{...(championData.picks||{}),[currentUser]:sel}};
-    await saveChampion(np);
-    showToast(t.championSaved);
-  };
-
-  const teamInfo=name=>ALL_TEAMS.find(t=>t.name===name)||{name,flag:"🏳️"};
-
-  return(
-    <div>
-      {/* My pick card */}
-      <div className="card" style={{background:"linear-gradient(135deg,rgba(240,192,64,.1),rgba(240,150,20,.04))",border:"1px solid rgba(240,192,64,.25)",marginBottom:16}}>
-        <div style={{fontWeight:700,fontSize:15,marginBottom:12,color:"#f0c040"}}>🏆 {t.championPredict}</div>
-        <div style={{fontSize:12,color:"#8899bb",marginBottom:14}}>⏰ {t.championDeadline} · <strong style={{color:"#50e080"}}>+30 {t.pts}</strong></div>
-
-        {winner && (
-          <div style={{background:"rgba(80,224,128,.1)",border:"1px solid rgba(80,224,128,.3)",borderRadius:10,padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:28}}>{teamInfo(winner).flag}</span>
-            <div>
-              <div style={{fontSize:11,color:"#8899bb"}}>{t.championWinner}</div>
-              <div style={{fontWeight:700,fontSize:16,color:"#50e080"}}>{winner}</div>
-            </div>
-            {myPick===winner&&<span style={{marginRight:"auto",background:"rgba(240,192,64,.2)",color:"#f0c040",padding:"2px 10px",borderRadius:20,fontSize:12,fontWeight:700}}>+30 🎉</span>}
-          </div>
-        )}
-
-        {myPick ? (
-          <div style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:"rgba(255,255,255,.04)",borderRadius:10}}>
-            <span style={{fontSize:28}}>{teamInfo(myPick).flag}</span>
-            <div style={{flex:1}}>
-              <div style={{fontSize:11,color:"#8899bb"}}>{t.yourChampionPick}</div>
-              <div style={{fontWeight:700,fontSize:15}}>{myPick}</div>
-            </div>
-            {!championLocked&&<button className="btn btn-ghost sm" style={{fontFamily:"inherit"}} onClick={()=>setSel(myPick)}>✏️</button>}
-          </div>
-        ) : championLocked ? (
-          <div style={{color:"#ff8060",fontSize:13,padding:"10px 0"}}>🔒 {t.championLocked}</div>
-        ) : null}
-
-        {!championLocked&&(
-          <div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap"}}>
-            <select className="inp" style={{flex:1}} value={sel} onChange={e=>setSel(e.target.value)}>
-              <option value="">{t.selectTeam}</option>
-              {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=>(
-                <option key={tm.name} value={tm.name}>{tm.flag} {tm.name}</option>
-              ))}
-            </select>
-            <button className="btn btn-primary" style={{fontFamily:"inherit"}} onClick={doSave} disabled={!sel}>{t.save}</button>
-          </div>
-        )}
-      </div>
-
-      {/* Everyone's picks */}
-      <div style={{fontSize:12,color:"#8899bb",letterSpacing:2,fontWeight:700,margin:"16px 0 10px",textTransform:"uppercase"}}>── {t.everyonesPicks} ──</div>
-      {Object.entries(users).map(([uname])=>{
-        const pick=championData.picks?.[uname];
-        const correct=winner&&pick===winner;
-        return(
-          <div key={uname} className="card" style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",border:correct?"1px solid rgba(80,224,128,.3)":"1px solid rgba(255,255,255,.07)"}}>
-            <div style={{fontSize:22}}>{pick?teamInfo(pick).flag:"❓"}</div>
-            <div style={{flex:1}}>
-              <div style={{fontWeight:600,fontSize:14}}>👤 {uname}</div>
-              <div style={{fontSize:12,color:pick?"#e8eaf0":"#556"}}>{pick||t.notPicked}</div>
-            </div>
-            {correct&&<span style={{background:"rgba(80,224,128,.2)",color:"#50e080",padding:"2px 10px",borderRadius:20,fontSize:12,fontWeight:700}}>+30 ✓</span>}
-          </div>
-        );
-      })}
-      {Object.keys(users).length===0&&<div className="card" style={{textAlign:"center",color:"#8899bb",padding:30}}>👥</div>}
-    </div>
-  );
-}
-
-// ─── MATCHES TAB ──────────────────────────────────────────────────────────────
-function MatchesTab({t,lang,matches,predictions,currentUser,savePreds,showToast}){
-  const [predModal,setPredModal]=useState(null);
-  const [predVal,setPredVal]=useState({home:"",away:"",winner:"",method:""});
-  const [filterGroup,setFilterGroup]=useState("all");
-
+// ─── MATCHES TAB ─────────────────────────────────────────────────────────────
+function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
+  const[predModal,setPredModal]=useState(null);
+  const[predVal,setPredVal]=useState({home:"",away:"",winner:"",method:""});
+  const[filterGroup,setFilterGroup]=useState("all");
   const isLocked=m=>new Date(m.date)<=new Date();
   const hasResult=m=>m.result.home!==""&&m.result.away!=="";
-  const isKnockout=m=>KNOCKOUT_STAGES.includes(m.stage);
-
+  const isKO=m=>KNOCKOUT_STAGES.includes(m.stage);
   const openPred=m=>{
-    if(isLocked(m)) return showToast(t.predictionLocked);
-    const ex=predictions[currentUser]?.[m.id];
-    setPredVal(ex||{home:"",away:"",winner:"",method:""});
+    if(isLocked(m))return showToast(t.predictionLocked);
+    setPredVal(predictions[currentUser]?.[m.id]||{home:"",away:"",winner:"",method:""});
     setPredModal(m);
   };
-
   const savePred=async()=>{
-    if(predVal.home===""||predVal.away==="") return;
+    if(predVal.home===""||predVal.away==="")return;
     const entry={home:predVal.home,away:predVal.away};
-    if(isKnockout(predModal)){entry.winner=predVal.winner;entry.method=predVal.method;}
-    const np={...predictions,[currentUser]:{...(predictions[currentUser]||{}),[predModal.id]:entry}};
-    await savePreds(np);
+    if(isKO(predModal)){entry.winner=predVal.winner;entry.method=predVal.method;}
+    await savePreds({...predictions,[currentUser]:{...(predictions[currentUser]||{}),[predModal.id]:entry}});
     setPredModal(null);showToast(t.predictionSaved);
   };
-
   const groups=[...new Set(matches.filter(m=>m.stage==="group").map(m=>m.group))].sort();
   const displayed=matches.filter(m=>filterGroup==="all"||m.group===filterGroup||m.stage!=="group");
   const byStage={};
   displayed.forEach(m=>{(byStage[m.stage]=byStage[m.stage]||[]).push(m);});
-
   return(
     <div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
         <button className={`filter-btn${filterGroup==="all"?" active":""}`} onClick={()=>setFilterGroup("all")}>{t.allGroups}</button>
         {groups.map(g=><button key={g} className={`filter-btn${filterGroup===g?" active":""}`} onClick={()=>setFilterGroup(g)}>{t.groupLabel} {g}</button>)}
       </div>
-
       {STAGE_ORDER.map(stage=>{
-        const sm=byStage[stage]; if(!sm?.length) return null;
+        const sm=byStage[stage];if(!sm?.length)return null;
         const ko=KNOCKOUT_STAGES.includes(stage);
         return(
           <div key={stage}>
@@ -532,16 +534,15 @@ function MatchesTab({t,lang,matches,predictions,currentUser,savePreds,showToast}
               return(
                 <div key={m.id} className="card" style={{borderColor:res?"rgba(80,224,128,.15)":locked?"rgba(255,255,255,.06)":"rgba(240,192,64,.15)"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:6}}>
-                    <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                       {res&&<span className="badge badge-green">✓ {t.finished}</span>}
                       {!res&&locked&&<span className="badge badge-red">🔒 {t.lockedBadge}</span>}
                       {!res&&!locked&&<span className="badge badge-blue">⏰ {t.upcoming}</span>}
                       {m.group&&<span className="badge badge-gold">{t.groupLabel} {m.group}</span>}
                       {ko&&<span style={{background:"rgba(180,100,255,.15)",color:"#c080ff",border:"1px solid rgba(180,100,255,.25)",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700}}>⚡ +5</span>}
                     </div>
-                    <span style={{fontSize:11,color:"#556"}}>{new Date(m.date).toLocaleString(lang==="fa"?"fa-IR":"en-GB",{timeZone:"Asia/Tehran",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
+                    <span style={{fontSize:11,color:"#667"}}>{fmtDate(m.date,t)}</span>
                   </div>
-
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
                     <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:28}}>{m.homeFlag||"🏳️"}</div><div style={{fontWeight:700,fontSize:12,marginTop:3}}>{m.home}</div></div>
                     <div style={{textAlign:"center",minWidth:90}}>
@@ -551,12 +552,10 @@ function MatchesTab({t,lang,matches,predictions,currentUser,savePreds,showToast}
                     </div>
                     <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:28}}>{m.awayFlag||"🏳️"}</div><div style={{fontWeight:700,fontSize:12,marginTop:3}}>{m.away}</div></div>
                   </div>
-
-                  {/* My prediction */}
                   <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid rgba(255,255,255,.05)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}}>
                     <div style={{fontSize:12,color:"#8899bb"}}>
                       {myP?.home!==undefined
-                        ?<span>📌 {t.prediction}: <strong style={{color:"#f0c040"}}>{myP.home}–{myP.away}</strong>{ko&&myP.winner&&<span style={{color:"#c080ff"}}> · {myP.winner===m.home?m.homeFlag:m.awayFlag} {myP.winner} {myP.method&&`(${myP.method==="90"?t.method90:myP.method==="ET"?t.methodET:t.methodPK})`}</span>}</span>
+                        ?<span>📌 {t.prediction}: <strong style={{color:"#f0c040"}}>{myP.home}–{myP.away}</strong>{isKO(m)&&myP.winner&&<span style={{color:"#c080ff"}}> · {myP.winner===m.home?m.homeFlag:m.awayFlag} {myP.winner}{myP.method&&` (${myP.method==="90"?t.method90:myP.method==="ET"?t.methodET:t.methodPK})`}</span>}</span>
                         :<span style={{color:"#445"}}>— {t.notPredicted}</span>}
                     </div>
                     {!locked&&<button className="btn btn-primary" style={{padding:"6px 14px",fontSize:12,fontFamily:"inherit"}} onClick={()=>openPred(m)}>{myP?"✏️ "+t.editPrediction:"⚽ "+t.predict}</button>}
@@ -567,22 +566,19 @@ function MatchesTab({t,lang,matches,predictions,currentUser,savePreds,showToast}
           </div>
         );
       })}
-
-      {/* Predict Modal */}
       {predModal&&(
         <Modal onClose={()=>setPredModal(null)}>
           <div style={{textAlign:"center",marginBottom:14}}>
-            <div style={{fontSize:11,color:"#8899bb",marginBottom:6}}>{isKnockout(predModal)?"⚡ "+t.knockoutBonus:"⚽ "+t.predict}</div>
+            <div style={{fontSize:11,color:"#8899bb",marginBottom:6}}>{isKO(predModal)?"⚡ "+t.knockoutBonus:"⚽ "+t.predict}</div>
             <div style={{fontWeight:700,fontSize:14}}>{predModal.homeFlag} {predModal.home} vs {predModal.awayFlag} {predModal.away}</div>
+            <div style={{fontSize:11,color:"#667",marginTop:4}}>{fmtDate(predModal.date,t)}</div>
           </div>
-
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:14,margin:"14px 0"}}>
             <div style={{textAlign:"center"}}><div style={{fontSize:11,color:"#8899bb",marginBottom:5}}>{predModal.home}</div><input type="number" min="0" max="20" className="score-input" value={predVal.home} onChange={e=>setPredVal(v=>({...v,home:e.target.value}))}/></div>
             <div style={{fontSize:22,color:"#f0c040",fontWeight:900}}>–</div>
             <div style={{textAlign:"center"}}><div style={{fontSize:11,color:"#8899bb",marginBottom:5}}>{predModal.away}</div><input type="number" min="0" max="20" className="score-input" value={predVal.away} onChange={e=>setPredVal(v=>({...v,away:e.target.value}))}/></div>
           </div>
-
-          {isKnockout(predModal)&&(
+          {isKO(predModal)&&(
             <div style={{background:"rgba(180,100,255,.08)",border:"1px solid rgba(180,100,255,.2)",borderRadius:10,padding:"12px",marginTop:4}}>
               <div style={{fontSize:11,color:"#c080ff",fontWeight:700,marginBottom:10}}>⚡ {t.knockoutBonus} (+3/+2)</div>
               <div style={{marginBottom:10}}>
@@ -609,7 +605,6 @@ function MatchesTab({t,lang,matches,predictions,currentUser,savePreds,showToast}
               )}
             </div>
           )}
-
           <div style={{display:"flex",gap:8,marginTop:14}}>
             <button className="btn btn-ghost" style={{flex:1,fontFamily:"inherit"}} onClick={()=>setPredModal(null)}>{t.cancel}</button>
             <button className="btn btn-primary" style={{flex:1,fontFamily:"inherit"}} onClick={savePred}>{t.save}</button>
@@ -620,11 +615,66 @@ function MatchesTab({t,lang,matches,predictions,currentUser,savePreds,showToast}
   );
 }
 
+// ─── CHAMPION TAB ─────────────────────────────────────────────────────────────
+function ChampionTab({t,users,championData,saveChampion,currentUser,championLocked,showToast}){
+  const[sel,setSel]=useState("");
+  const myPick=championData.picks?.[currentUser]||"";
+  const winner=championData.winner||"";
+  const teamInfo=name=>ALL_TEAMS.find(t=>t.name===name)||{name,flag:"🏳️"};
+  const doSave=async()=>{
+    if(!sel)return;
+    await saveChampion({...championData,picks:{...(championData.picks||{}),[currentUser]:sel}});
+    showToast(t.championSaved);
+  };
+  return(
+    <div>
+      <div className="card" style={{background:"linear-gradient(135deg,rgba(240,192,64,.1),rgba(240,150,20,.04))",border:"1px solid rgba(240,192,64,.25)",marginBottom:16}}>
+        <div style={{fontWeight:700,fontSize:15,marginBottom:10,color:"#f0c040"}}>🏆 {t.championPredict}</div>
+        <div style={{fontSize:12,color:"#8899bb",marginBottom:12}}>⏰ {t.championDeadline} · <strong style={{color:"#50e080"}}>+30 {t.pts}</strong></div>
+        {winner&&(
+          <div style={{background:"rgba(80,224,128,.1)",border:"1px solid rgba(80,224,128,.3)",borderRadius:10,padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:28}}>{teamInfo(winner).flag}</span>
+            <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.championWinner}</div><div style={{fontWeight:700,fontSize:16,color:"#50e080"}}>{winner}</div></div>
+            {myPick===winner&&<span style={{background:"rgba(240,192,64,.2)",color:"#f0c040",padding:"2px 10px",borderRadius:20,fontSize:12,fontWeight:700}}>+30 🎉</span>}
+          </div>
+        )}
+        {myPick?(
+          <div style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:"rgba(255,255,255,.04)",borderRadius:10,marginBottom:10}}>
+            <span style={{fontSize:26}}>{teamInfo(myPick).flag}</span>
+            <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.yourChampionPick}</div><div style={{fontWeight:700}}>{myPick}</div></div>
+            {!championLocked&&<button className="btn btn-ghost sm" style={{fontFamily:"inherit"}} onClick={()=>setSel(myPick)}>✏️</button>}
+          </div>
+        ):championLocked?<div style={{color:"#ff8060",fontSize:13,padding:"8px 0"}}>🔒 {t.championLocked}</div>:null}
+        {!championLocked&&(
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <select className="inp" style={{flex:1}} value={sel} onChange={e=>setSel(e.target.value)}>
+              <option value="">{t.selectTeam}</option>
+              {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=><option key={tm.name} value={tm.name}>{tm.flag} {tm.name}</option>)}
+            </select>
+            <button className="btn btn-primary" style={{fontFamily:"inherit"}} onClick={doSave} disabled={!sel}>{t.save}</button>
+          </div>
+        )}
+      </div>
+      <div style={{fontSize:11,color:"#8899bb",letterSpacing:2,fontWeight:700,margin:"14px 0 10px",textTransform:"uppercase"}}>── {t.everyonesPicks} ──</div>
+      {Object.entries(users).map(([uname])=>{
+        const pick=championData.picks?.[uname];const correct=winner&&pick===winner;
+        return(
+          <div key={uname} className="card" style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",border:correct?"1px solid rgba(80,224,128,.3)":"1px solid rgba(255,255,255,.07)"}}>
+            <div style={{fontSize:22}}>{pick?teamInfo(pick).flag:"❓"}</div>
+            <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>👤 {uname}</div><div style={{fontSize:12,color:pick?"#e8eaf0":"#556"}}>{pick||t.notPicked}</div></div>
+            {correct&&<span style={{background:"rgba(80,224,128,.2)",color:"#50e080",padding:"2px 10px",borderRadius:20,fontSize:12,fontWeight:700}}>+30 ✓</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── STANDINGS TAB ────────────────────────────────────────────────────────────
-function StandingsTab({t,lang,standings,matches}){
+function StandingsTab({t,standings,matches}){
   const groups=Object.keys(standings).sort();
-  const [sel,setSel]=useState(groups[0]||"A");
-  if(!groups.length) return <div className="card" style={{textAlign:"center",color:"#8899bb",padding:40}}>📊</div>;
+  const[sel,setSel]=useState(groups[0]||"A");
+  if(!groups.length)return <div className="card" style={{textAlign:"center",color:"#8899bb",padding:40}}>📊</div>;
   const gm=matches.filter(m=>m.stage==="group"&&m.group===sel);
   return(
     <div>
@@ -663,23 +713,20 @@ function StandingsTab({t,lang,standings,matches}){
             ))}
           </tbody>
         </table>
-        <div style={{padding:"6px 12px",fontSize:11,color:"#667",borderTop:"1px solid rgba(255,255,255,.05)"}}>🟢 = {lang==="fa"?"صعود به مرحله بعد":"Advance"}</div>
+        <div style={{padding:"6px 12px",fontSize:11,color:"#667",borderTop:"1px solid rgba(255,255,255,.05)"}}>🟢 {lang==="fa"?"= صعود به مرحله بعد":lang==="de"?"= Aufstieg":"= Advance"}</div>
       </div>
-      {gm.map(m=>{
-        const res=m.result.home!==""&&m.result.away!=="";
-        return(
-          <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
-            <div style={{flex:1,fontSize:13,fontWeight:600}}>{m.homeFlag} {m.home}</div>
-            <div style={{textAlign:"center",minWidth:70}}>{res?<span style={{fontSize:17,fontWeight:900,color:"#f0c040"}}>{m.result.home} – {m.result.away}</span>:<span style={{fontSize:11,color:"#445"}}>{new Date(m.date).toLocaleDateString(lang==="fa"?"fa-IR":"en-GB",{timeZone:"Asia/Tehran",month:"short",day:"numeric"})}</span>}</div>
-            <div style={{flex:1,fontSize:13,fontWeight:600,textAlign:"end"}}>{m.away} {m.awayFlag}</div>
-          </div>
-        );
-      })}
+      {gm.map(m=>{const res=m.result.home!==""&&m.result.away!=="";return(
+        <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
+          <div style={{flex:1,fontSize:13,fontWeight:600}}>{m.homeFlag} {m.home}</div>
+          <div style={{textAlign:"center",minWidth:80}}>{res?<span style={{fontSize:17,fontWeight:900,color:"#f0c040"}}>{m.result.home} – {m.result.away}</span>:<span style={{fontSize:11,color:"#445"}}>{fmtDate(m.date,t,true)}</span>}</div>
+          <div style={{flex:1,fontSize:13,fontWeight:600,textAlign:"end"}}>{m.away} {m.awayFlag}</div>
+        </div>
+      );})}
     </div>
   );
 }
 
-// ─── LEADERBOARD ──────────────────────────────────────────────────────────────
+// ─── LEADERBOARD ─────────────────────────────────────────────────────────────
 function LeaderboardTab({t,leaderboard,currentUser,championData}){
   const medals=["🥇","🥈","🥉"];
   const me=leaderboard.find(e=>e.user===currentUser);
@@ -718,7 +765,6 @@ function MyPredsTab({t,matches,predictions,currentUser,championData}){
   const upcoming=matches.filter(m=>m.result.home===""||m.result.away==="");
   const totalPts=done.reduce((s,m)=>s+calcPoints(myP[m.id],m.result,m.stage),0)
     +(championData.winner?calcChampionPoints(championData.picks?.[currentUser],championData.winner):0);
-
   return(
     <div>
       <div className="card" style={{background:"linear-gradient(135deg,rgba(96,144,255,.08),rgba(50,100,220,.04))",border:"1px solid rgba(96,144,255,.2)",marginBottom:14,display:"flex",justifyContent:"space-around",textAlign:"center",padding:"14px 10px"}}>
@@ -726,8 +772,6 @@ function MyPredsTab({t,matches,predictions,currentUser,championData}){
         <div><div style={{fontSize:26,fontWeight:900,color:"#50e080"}}>{done.filter(m=>calcPoints(myP[m.id],m.result,m.stage)>=10).length}</div><div style={{fontSize:11,color:"#8899bb"}}>{t.exactScore}</div></div>
         <div><div style={{fontSize:26,fontWeight:900,color:"#6090ff"}}>{Object.keys(myP).length}</div><div style={{fontSize:11,color:"#8899bb"}}>{t.predicted}</div></div>
       </div>
-
-      {/* Champion pick summary */}
       {championData.picks?.[currentUser]&&(
         <div className="card" style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",marginBottom:4,background:"rgba(240,192,64,.05)",border:"1px solid rgba(240,192,64,.2)"}}>
           <span style={{fontSize:22}}>🏆</span>
@@ -735,20 +779,14 @@ function MyPredsTab({t,matches,predictions,currentUser,championData}){
           {championData.winner&&<span className={`pts-pill ${championData.winner===championData.picks[currentUser]?"pts-10":"pts-0"}`}>{championData.winner===championData.picks[currentUser]?"+30":"0"}</span>}
         </div>
       )}
-
-      {done.map(m=>{
-        const p=myP[m.id];const pts=calcPoints(p,m.result,m.stage);
-        const ko=KNOCKOUT_STAGES.includes(m.stage);
-        return(
-          <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",flexWrap:"wrap"}}>
-            <div style={{flex:1,minWidth:120,fontSize:13,fontWeight:600}}>{m.homeFlag} {m.home} vs {m.awayFlag} {m.away}</div>
-            <div style={{textAlign:"center",minWidth:46}}><div style={{fontSize:10,color:"#8899bb"}}>{t.actual}</div><div style={{fontWeight:700,color:"#f0c040"}}>{m.result.home}–{m.result.away}</div></div>
-            <div style={{textAlign:"center",minWidth:46}}><div style={{fontSize:10,color:"#8899bb"}}>{t.prediction}</div><div style={{fontWeight:700,color:"#aab"}}>{p?`${p.home}–${p.away}`:"—"}</div></div>
-            <span className={`pts-pill ${ptsCls(pts)}`} style={{fontSize:13,padding:"3px 10px"}}>{pts}</span>
-          </div>
-        );
-      })}
-
+      {done.map(m=>{const p=myP[m.id];const pts=calcPoints(p,m.result,m.stage);return(
+        <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:120,fontSize:13,fontWeight:600}}>{m.homeFlag} {m.home} vs {m.awayFlag} {m.away}</div>
+          <div style={{textAlign:"center",minWidth:46}}><div style={{fontSize:10,color:"#8899bb"}}>{t.actual}</div><div style={{fontWeight:700,color:"#f0c040"}}>{m.result.home}–{m.result.away}</div></div>
+          <div style={{textAlign:"center",minWidth:46}}><div style={{fontSize:10,color:"#8899bb"}}>{t.prediction}</div><div style={{fontWeight:700,color:"#aab"}}>{p?`${p.home}–${p.away}`:"—"}</div></div>
+          <span className={`pts-pill ${ptsCls(pts)}`} style={{fontSize:13,padding:"3px 10px"}}>{pts}</span>
+        </div>
+      );})}
       {upcoming.length>0&&<>
         <div style={{margin:"14px 0 8px",color:"#8899bb",fontSize:11,letterSpacing:2}}>── {t.upcoming.toUpperCase()} ──</div>
         {upcoming.map(m=>{const p=myP[m.id];return(
@@ -763,51 +801,52 @@ function MyPredsTab({t,matches,predictions,currentUser,championData}){
 }
 
 // ─── ADMIN TAB ────────────────────────────────────────────────────────────────
-function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePreds,championData,saveChampion,showToast}){
-  const [section,setSection]=useState("matches");
-  const [showAdd,setShowAdd]=useState(false);
-  const [editResult,setEditResult]=useState(null);
-  const [resVal,setResVal]=useState({home:"",away:"",winner:"",method:""});
-  const [nm,setNm]=useState({home:"",away:"",homeFlag:"",awayFlag:"",date:"",stage:"group",group:""});
-  const [champWinner,setChampWinner]=useState(championData.winner||"");
+function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,championData,saveChampion,showToast}){
+  const[section,setSection]=useState("matches");
+  const[showAdd,setShowAdd]=useState(false);
+  const[editResult,setEditResult]=useState(null);
+  const[resVal,setResVal]=useState({home:"",away:"",winner:"",method:""});
+  const[nm,setNm]=useState({home:"",away:"",homeFlag:"",awayFlag:"",date:"",stage:"group",group:""});
+  const[champWinner,setChampWinner]=useState(championData.winner||"");
+  // password reset state
+  const[resetUser,setResetUser]=useState(null);
+  const[newPassVal,setNewPassVal]=useState("");
+  const[showNewPass,setShowNewPass]=useState(false);
+
   const stages=["group","round32","round16","quarter","semi","third","final"];
   const pending=matches.filter(m=>new Date(m.date)<=new Date()&&(m.result.home===""||m.result.away==="")).length;
   const isKO=m=>KNOCKOUT_STAGES.includes(m.stage);
 
   const addMatch=async()=>{
-    if(!nm.home||!nm.away||!nm.date) return;
+    if(!nm.home||!nm.away||!nm.date)return;
     await saveMatches([...matches,{...nm,id:"m"+Date.now(),result:{home:"",away:""}}]);
     setNm({home:"",away:"",homeFlag:"",awayFlag:"",date:"",stage:"group",group:""});setShowAdd(false);showToast(t.matchAdded);
   };
-
-  const openRes=m=>{
-    setResVal({home:m.result.home||"",away:m.result.away||"",winner:m.result.winner||"",method:m.result.method||""});
-    setEditResult(m);
-  };
-
+  const openRes=m=>{setResVal({home:m.result.home||"",away:m.result.away||"",winner:m.result.winner||"",method:m.result.method||""});setEditResult(m);};
   const saveRes=async()=>{
     const result={home:resVal.home,away:resVal.away};
     if(isKO(editResult)){result.winner=resVal.winner;result.method=resVal.method;}
     await saveMatches(matches.map(m=>m.id===editResult.id?{...m,result}:m));
     setEditResult(null);showToast(t.resultSaved);
   };
-
-  const saveChampWinner=async()=>{
-    await saveChampion({...championData,winner:champWinner});
-    showToast(t.resultSaved);
-  };
-
+  const saveChampWinner=async()=>{await saveChampion({...championData,winner:champWinner});showToast(t.resultSaved);};
   const delMatch=async id=>{if(!confirm(t.confirmDelete))return;await saveMatches(matches.filter(m=>m.id!==id));};
   const delUser=async u=>{
     if(!confirm(t.confirmDelete))return;
     const nu={...users};delete nu[u];const np={...predictions};delete np[u];
     await saveUsers(nu);await savePreds(np);
   };
+  const doResetPass=async()=>{
+    if(!newPassVal.trim())return;
+    const nu={...users,[resetUser]:{...users[resetUser],password:newPassVal}};
+    await saveUsers(nu);
+    setResetUser(null);setNewPassVal("");setShowNewPass(false);
+    showToast(`✓ ${t.passwordReset}: ${resetUser}`);
+  };
 
   return(
     <div>
       {pending>0&&<div style={{background:"rgba(255,100,50,.1)",border:"1px solid rgba(255,100,50,.3)",borderRadius:10,padding:"10px 14px",marginBottom:12,fontSize:13,color:"#ff9060"}}>⚠️ {pending} {t.pendingResults}</div>}
-
       <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
         {["matches","champion","users"].map(s=>(
           <button key={s} onClick={()=>setSection(s)} className="btn" style={{fontFamily:"inherit",background:section===s?"linear-gradient(135deg,#f0c040,#e08020)":"rgba(255,255,255,.08)",color:section===s?"#0a0f1e":"#aab",border:"none"}}>
@@ -816,6 +855,7 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
         ))}
       </div>
 
+      {/* ── CHAMPION ── */}
       {section==="champion"&&(
         <div>
           <div className="card" style={{background:"rgba(240,192,64,.05)",border:"1px solid rgba(240,192,64,.2)"}}>
@@ -823,15 +863,13 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
             <div style={{display:"flex",gap:8}}>
               <select className="inp" style={{flex:1}} value={champWinner} onChange={e=>setChampWinner(e.target.value)}>
                 <option value="">{t.selectTeam}</option>
-                {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=>(
-                  <option key={tm.name} value={tm.name}>{tm.flag} {tm.name}</option>
-                ))}
+                {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=><option key={tm.name} value={tm.name}>{tm.flag} {tm.name}</option>)}
               </select>
               <button className="btn btn-primary" style={{fontFamily:"inherit"}} onClick={saveChampWinner}>{t.save}</button>
             </div>
             {championData.winner&&<div style={{marginTop:10,fontSize:13,color:"#50e080"}}>✓ {t.championWinner}: <strong>{championData.winner}</strong></div>}
           </div>
-          <div style={{marginTop:14,fontSize:12,color:"#8899bb",letterSpacing:1}}>── {t.everyonesPicks} ──</div>
+          <div style={{marginTop:14,fontSize:11,color:"#8899bb",letterSpacing:1,marginBottom:8}}>── {t.everyonesPicks} ──</div>
           {Object.entries(users).map(([u])=>(
             <div key={u} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
               <div style={{flex:1,fontWeight:600}}>👤 {u}</div>
@@ -841,13 +879,14 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
         </div>
       )}
 
+      {/* ── MATCHES ── */}
       {section==="matches"&&<>
         <button className="btn btn-primary" style={{marginBottom:10,fontFamily:"inherit"}} onClick={()=>setShowAdd(!showAdd)}>{showAdd?"✕ "+t.cancel:"＋ "+t.addMatch}</button>
         {showAdd&&(
           <div className="card" style={{marginBottom:10,background:"rgba(240,192,64,.04)",border:"1px solid rgba(240,192,64,.2)"}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-              <input className="inp" placeholder={`${t.home}`} value={nm.home} onChange={e=>setNm(v=>({...v,home:e.target.value}))}/>
-              <input className="inp" placeholder={`${t.away}`} value={nm.away} onChange={e=>setNm(v=>({...v,away:e.target.value}))}/>
+              <input className="inp" placeholder={t.home} value={nm.home} onChange={e=>setNm(v=>({...v,home:e.target.value}))}/>
+              <input className="inp" placeholder={t.away} value={nm.away} onChange={e=>setNm(v=>({...v,away:e.target.value}))}/>
               <input className="inp" placeholder="🏳️ Home flag" value={nm.homeFlag} onChange={e=>setNm(v=>({...v,homeFlag:e.target.value}))}/>
               <input className="inp" placeholder="🏳️ Away flag" value={nm.awayFlag} onChange={e=>setNm(v=>({...v,awayFlag:e.target.value}))}/>
               <input className="inp" type="datetime-local" value={nm.date} onChange={e=>setNm(v=>({...v,date:e.target.value}))}/>
@@ -860,7 +899,7 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
           </div>
         )}
         {STAGE_ORDER.map(stage=>{
-          const sm=matches.filter(m=>m.stage===stage);if(!sm.length) return null;
+          const sm=matches.filter(m=>m.stage===stage);if(!sm.length)return null;
           return(
             <div key={stage}>
               <div style={{fontSize:11,color:"#8899bb",letterSpacing:2,fontWeight:700,margin:"12px 0 8px",textTransform:"uppercase"}}>── {stageLabel(stage,t)} ──</div>
@@ -868,7 +907,7 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
                 <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",padding:"10px 12px"}}>
                   <div style={{flex:1,minWidth:140}}>
                     <div style={{fontWeight:600,fontSize:13}}>{m.homeFlag} {m.home} vs {m.awayFlag} {m.away}</div>
-                    <div style={{fontSize:11,color:"#8899bb",marginTop:2}}>{new Date(m.date).toLocaleString(lang==="fa"?"fa-IR":"en-GB",{timeZone:"Asia/Tehran",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</div>
+                    <div style={{fontSize:11,color:"#8899bb",marginTop:2}}>{fmtDate(m.date,t)}</div>
                   </div>
                   {m.result.home!==""?<span className="badge badge-green">{m.result.home}–{m.result.away}{m.result.method&&` (${m.result.method})`}</span>:<span className="badge badge-blue">—</span>}
                   <button className="btn btn-ghost" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>openRes(m)}>{t.setResult}</button>
@@ -880,15 +919,49 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
         })}
       </>}
 
+      {/* ── USERS ── */}
       {section==="users"&&(
         <div>
+          <div style={{fontSize:12,color:"#8899bb",marginBottom:10}}>👥 {Object.keys(users).length} {lang==="fa"?"کاربر":lang==="de"?"Nutzer":"users"}</div>
           {Object.entries(users).map(([uname])=>{
             const pts=matches.reduce((s,m)=>m.result.home!==""?s+calcPoints(predictions[uname]?.[m.id],m.result,m.stage):s,0)
               +(championData.winner?calcChampionPoints(championData.picks?.[uname],championData.winner):0);
             return(
-              <div key={uname} className="card" style={{display:"flex",alignItems:"center",gap:10}}>
-                <div style={{flex:1}}><div style={{fontWeight:600}}>👤 {uname}</div><div style={{fontSize:11,color:"#8899bb"}}>{pts} {t.pts}</div></div>
-                <button className="btn btn-danger" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>delUser(uname)}>{t.deleteUser}</button>
+              <div key={uname} className="card" style={{padding:"12px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:600}}>👤 {uname}</div>
+                    <div style={{fontSize:11,color:"#8899bb"}}>{pts} {t.pts}</div>
+                  </div>
+                  <button className="btn btn-ghost sm" style={{fontFamily:"inherit",color:"#f0c040",borderColor:"rgba(240,192,64,.3)"}} onClick={()=>{setResetUser(uname);setNewPassVal("");setShowNewPass(false);}}>
+                    🔑 {t.resetPass}
+                  </button>
+                  <button className="btn btn-danger" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>delUser(uname)}>{t.deleteUser}</button>
+                </div>
+                {/* Inline reset password form */}
+                {resetUser===uname&&(
+                  <div style={{marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,.08)",display:"flex",flexDirection:"column",gap:8}}>
+                    <div style={{fontSize:12,color:"#f0c040",fontWeight:600}}>🔑 {t.resetPassFor}: <strong>{uname}</strong></div>
+                    <div style={{position:"relative"}}>
+                      <input
+                        className="inp"
+                        type={showNewPass?"text":"password"}
+                        placeholder={t.newPass}
+                        value={newPassVal}
+                        onChange={e=>setNewPassVal(e.target.value)}
+                        style={{paddingRight:"70px"}}
+                      />
+                      <button type="button" onClick={()=>setShowNewPass(s=>!s)}
+                        style={{position:"absolute",top:"50%",transform:"translateY(-50%)",right:"10px",background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#8899bb",fontFamily:"inherit"}}>
+                        {showNewPass?"🙈":"👁️"}
+                      </button>
+                    </div>
+                    <div style={{display:"flex",gap:8}}>
+                      <button className="btn btn-ghost sm" style={{flex:1,fontFamily:"inherit"}} onClick={()=>{setResetUser(null);setNewPassVal("");}}>{t.cancel}</button>
+                      <button className="btn btn-primary" style={{flex:1,fontFamily:"inherit"}} onClick={doResetPass} disabled={!newPassVal.trim()}>{t.save}</button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -937,7 +1010,7 @@ function AdminTab({t,lang,matches,saveMatches,users,saveUsers,predictions,savePr
 }
 
 function Modal({children,onClose}){return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.72)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={e=>e.target===e.currentTarget&&onClose()}><div style={{background:"linear-gradient(135deg,#0f1a2e,#0a1222)",border:"1px solid rgba(240,192,64,.25)",borderRadius:16,padding:"22px 18px",width:"100%",maxWidth:380,animation:"slideDown .22s ease",maxHeight:"90vh",overflowY:"auto"}}>{children}</div></div>);}
-function Loader(){return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#050d1a",color:"#f0c040",fontSize:22,fontFamily:"sans-serif",gap:12}}><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⚽</span></div>);}
+function Loader(){return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#050d1a",color:"#f0c040",fontSize:22,fontFamily:"sans-serif"}}><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⚽</span></div>);}
 
 const CSS=`
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Vazirmatn:wght@400;600;700&display=swap');
@@ -952,6 +1025,7 @@ const CSS=`
 .btn.sm{padding:5px 11px;font-size:12px;}
 .btn-primary{background:linear-gradient(135deg,#f0c040,#e08020);color:#0a0f1e;}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(240,192,64,.3);}
+.btn-primary:disabled{opacity:.5;transform:none;cursor:not-allowed;}
 .btn-danger{background:rgba(220,50,50,.15);color:#ff6b6b;border:1px solid rgba(220,50,50,.25);}
 .btn-ghost{background:rgba(255,255,255,.07);color:#ccd;border:1px solid rgba(255,255,255,.12);}
 .inp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:10px 13px;color:#e8eaf0;font-size:14px;width:100%;outline:none;transition:border-color .2s;font-family:inherit;}
@@ -976,3 +1050,7 @@ const CSS=`
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .animate-in{animation:fadeIn .3s ease;}
 `;
+ENDOFFILE
+echo "Lines: $(wc -l < /home/claude/wc2026/src/App.jsx)"
+Output
+Lines: 1050
