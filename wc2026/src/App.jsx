@@ -41,8 +41,8 @@ const T = {
     championWinner:"قهرمان واقعی", setChampion:"ثبت قهرمان",
     selectTeam:"انتخاب تیم...",
     timezone:"Asia/Tehran", locale:"fa-IR",
-    showPass:"نمایش رمز",
-    resetPass:"ریست رمز", newPass:"رمز جدید",
+    rememberMe:"مرا به خاطر بسپار",
+    resetPass:"ریست رمز", newPass:"رمز جدید", resetDone:"رمز تغییر کرد",
   },
   en: {
     dir:"ltr", appTitle:"World Cup 2026", appSubtitle:"Match Predictions",
@@ -82,8 +82,8 @@ const T = {
     championWinner:"Actual Champion", setChampion:"Set Champion",
     selectTeam:"Select team...",
     timezone:"America/Toronto", locale:"en-CA",
-    showPass:"Show",
-    resetPass:"Reset Password", newPass:"New Password",
+    rememberMe:"Remember me",
+    resetPass:"Reset Password", newPass:"New Password", resetDone:"Password changed",
   },
 };
 
@@ -265,7 +265,7 @@ export default function App(){
     const u2=onSnapshot(doc(db,"data","users"),s=>{setUsers(s.exists()?s.data().value:{});});
     const u3=onSnapshot(doc(db,"data","predictions"),s=>{setPredictions(s.exists()?s.data().value:{});});
     const u4=onSnapshot(doc(db,"data","champion"),s=>{setChampionData(s.exists()?s.data().value:{picks:{},winner:""});});
-    const sess=sessionStorage.getItem("wc26_user");
+    const sess=localStorage.getItem("wc26_user")||sessionStorage.getItem("wc26_user");
     if(sess)setCurrentUser(sess);
     setLoading(false);
     return()=>{u1();u2();u3();u4();};
@@ -277,27 +277,31 @@ export default function App(){
   const savePreds=async p=>{setPredictions(p);await fbSet("data/predictions",p);};
   const saveChampion=async c=>{setChampionData(c);await fbSet("data/champion",c);};
 
-  const handleAuth=async()=>{
+  const handleAuth=async(rememberMe=false)=>{
     const{username,password,confirm}=form;
     if(!username.trim()||!password)return setAuthError(t.fillAll);
+    const persist=(u)=>{
+      if(rememberMe){localStorage.setItem("wc26_user",u);sessionStorage.removeItem("wc26_user");}
+      else{sessionStorage.setItem("wc26_user",u);localStorage.removeItem("wc26_user");}
+    };
     if(username==="admin"){
       if(password!==ADMIN_PASS)return setAuthError(t.wrongCredentials);
-      setCurrentUser("admin");sessionStorage.setItem("wc26_user","admin");setAuthError("");return;
+      setCurrentUser("admin");persist("admin");setAuthError("");return;
     }
     if(authMode==="register"){
       if(password!==confirm)return setAuthError(t.passwordMismatch);
       if(users[username])return setAuthError(t.usernameExists);
       const nu={...users,[username]:{password,createdAt:Date.now()}};
-      await saveUsers(nu);setCurrentUser(username);sessionStorage.setItem("wc26_user",username);
+      await saveUsers(nu);setCurrentUser(username);persist(username);
       setAuthError("");setForm({username:"",password:"",confirm:""});
     }else{
       if(!users[username]||users[username].password!==password)return setAuthError(t.wrongCredentials);
-      setCurrentUser(username);sessionStorage.setItem("wc26_user",username);
+      setCurrentUser(username);persist(username);
       setAuthError("");setForm({username:"",password:"",confirm:""});
     }
   };
 
-  const logout=()=>{setCurrentUser(null);sessionStorage.removeItem("wc26_user");setTab("matches");};
+  const logout=()=>{setCurrentUser(null);sessionStorage.removeItem("wc26_user");localStorage.removeItem("wc26_user");setTab("matches");};
   const isAdmin=currentUser==="admin";
   const championLocked=new Date(OPENING_MATCH_DATE)<=new Date();
 
@@ -373,6 +377,15 @@ export default function App(){
 
 // ─── AUTH PANEL ───────────────────────────────────────────────────────────────
 function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
+  const[showPass,setShowPass]=useState(false);
+  const[showConf,setShowConf]=useState(false);
+  const[remember,setRemember]=useState(false);
+  const isRtl=t.dir==="rtl";
+  const EyeBtn=({show,toggle})=>(
+    <button type="button" onClick={toggle} style={{position:"absolute",top:"50%",transform:"translateY(-50%)",[isRtl?"left":"right"]:"10px",background:"none",border:"none",cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 4px",color:"#8899bb"}}>
+      {show?"🙈":"👁️"}
+    </button>
+  );
   return(
     <div style={{display:"flex",justifyContent:"center",alignItems:"center",minHeight:"82vh"}}>
       <div style={{width:"100%",maxWidth:380}}>
@@ -393,15 +406,33 @@ function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
             <input className="inp" placeholder={t.username} value={form.username}
               onChange={e=>setForm(f=>({...f,username:e.target.value}))}
               name="username" autoComplete="username"/>
-            <input className="inp" type="password" placeholder={t.password} value={form.password}
-              onChange={e=>setForm(f=>({...f,password:e.target.value}))}
-              onKeyDown={e=>e.key==="Enter"&&onSubmit()}/>
-            {authMode==="register"&&
-              <input className="inp" type="password" placeholder={t.confirmPassword} value={form.confirm}
-                onChange={e=>setForm(f=>({...f,confirm:e.target.value}))}/>
-            }
+            <div style={{position:"relative"}}>
+              <input className="inp" type={showPass?"text":"password"} placeholder={t.password} value={form.password}
+                onChange={e=>setForm(f=>({...f,password:e.target.value}))}
+                onKeyDown={e=>e.key==="Enter"&&onSubmit(remember)}
+                name={authMode==="register"?"new-password":"current-password"}
+                autoComplete={authMode==="register"?"new-password":"current-password"}
+                style={{[isRtl?"paddingLeft":"paddingRight"]:"44px"}}/>
+              <EyeBtn show={showPass} toggle={()=>setShowPass(s=>!s)}/>
+            </div>
+            {authMode==="register"&&(
+              <div style={{position:"relative"}}>
+                <input className="inp" type={showConf?"text":"password"} placeholder={t.confirmPassword} value={form.confirm}
+                  onChange={e=>setForm(f=>({...f,confirm:e.target.value}))}
+                  name="new-password" autoComplete="new-password"
+                  style={{[isRtl?"paddingLeft":"paddingRight"]:"44px"}}/>
+                <EyeBtn show={showConf} toggle={()=>setShowConf(s=>!s)}/>
+              </div>
+            )}
+            {authMode==="login"&&(
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"#8899bb",userSelect:"none"}}>
+                <input type="checkbox" checked={remember} onChange={e=>setRemember(e.target.checked)}
+                  style={{width:16,height:16,accentColor:"#f0c040",cursor:"pointer"}}/>
+                {t.rememberMe}
+              </label>
+            )}
             {authError&&<div style={{color:"#ff6b6b",fontSize:12,padding:"5px 10px",background:"rgba(220,50,50,.1)",borderRadius:6}}>{authError}</div>}
-            <button className="btn btn-primary" onClick={onSubmit} style={{marginTop:4,fontFamily:"inherit"}}>{authMode==="login"?t.login:t.register}</button>
+            <button className="btn btn-primary" onClick={()=>onSubmit(remember)} style={{marginTop:4,fontFamily:"inherit"}}>{authMode==="login"?t.login:t.register}</button>
           </div>
         </div>
       </div>
@@ -832,19 +863,7 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
 
       {/* ── USERS ── */}
       {section==="users"&&(
-        <div>
-          <div style={{fontSize:12,color:"#8899bb",marginBottom:10}}>👥 {Object.keys(users).length} {t.dir==="rtl"?"کاربر":"users"}</div>
-          {Object.entries(users).map(([uname])=>{
-            const pts=matches.reduce((s,m)=>m.result.home!==""?s+calcPoints(predictions[uname]?.[m.id],m.result,m.stage):s,0)
-              +(championData.winner?calcChampionPoints(championData.picks?.[uname],championData.winner):0);
-            return(
-              <div key={uname} className="card" style={{display:"flex",alignItems:"center",gap:10}}>
-                <div style={{flex:1}}><div style={{fontWeight:600}}>👤 {uname}</div><div style={{fontSize:11,color:"#8899bb"}}>{pts} {t.pts}</div></div>
-                <button className="btn btn-danger" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>delUser(uname)}>{t.deleteUser}</button>
-              </div>
-            );
-          })}
-        </div>
+        <UsersPanel t={t} users={users} matches={matches} predictions={predictions} championData={championData} saveUsers={saveUsers} savePreds={savePreds} delUser={delUser}/>
       )}
 
       {/* Set Result Modal */}
@@ -884,6 +903,69 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+// ─── USERS PANEL (admin) ──────────────────────────────────────────────────────
+function UsersPanel({t,users,matches,predictions,championData,saveUsers,savePreds,delUser}){
+  const[resetTarget,setResetTarget]=useState(null);
+  const[newPass,setNewPass]=useState("");
+  const[showNewPass,setShowNewPass]=useState(false);
+  const isRtl=t.dir==="rtl";
+
+  const doReset=async()=>{
+    if(!newPass.trim())return;
+    const nu={...users,[resetTarget]:{...users[resetTarget],password:newPass}};
+    await saveUsers(nu);
+    setResetTarget(null);setNewPass("");setShowNewPass(false);
+  };
+
+  return(
+    <div>
+      <div style={{fontSize:12,color:"#8899bb",marginBottom:10}}>👥 {Object.keys(users).length} {isRtl?"کاربر":"users"}</div>
+      {Object.entries(users).map(([uname,udata])=>{
+        const pts=matches.reduce((s,m)=>m.result.home!==""?s+calcPoints(predictions[uname]?.[m.id],m.result,m.stage):s,0)
+          +(championData.winner?calcChampionPoints(championData.picks?.[uname],championData.winner):0);
+        return(
+          <div key={uname} className="card" style={{padding:"12px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+              <div style={{flex:1,minWidth:100}}>
+                <div style={{fontWeight:600}}>👤 {uname}</div>
+                <div style={{fontSize:11,color:"#8899bb"}}>{pts} {t.pts}</div>
+              </div>
+              <button className="btn btn-ghost sm"
+                style={{fontFamily:"inherit",color:"#f0c040",borderColor:"rgba(240,192,64,.3)",fontSize:11}}
+                onClick={()=>{setResetTarget(resetTarget===uname?null:uname);setNewPass("");setShowNewPass(false);}}>
+                🔑 {t.resetPass}
+              </button>
+              <button className="btn btn-danger" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>delUser(uname)}>{t.deleteUser}</button>
+            </div>
+            {resetTarget===uname&&(
+              <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid rgba(255,255,255,.07)"}}>
+                <div style={{fontSize:12,color:"#f0c040",marginBottom:8}}>🔑 {isRtl?"رمز جدید برای":"New password for"}: <strong>{uname}</strong></div>
+                <div style={{position:"relative",marginBottom:8}}>
+                  <input className="inp" type={showNewPass?"text":"password"} placeholder={t.newPass}
+                    value={newPass} onChange={e=>setNewPass(e.target.value)}
+                    style={{[isRtl?"paddingLeft":"paddingRight"]:"44px"}}/>
+                  <button type="button" onClick={()=>setShowNewPass(s=>!s)}
+                    style={{position:"absolute",top:"50%",transform:"translateY(-50%)",[isRtl?"left":"right"]:"10px",background:"none",border:"none",cursor:"pointer",fontSize:14,color:"#8899bb",padding:"2px 4px"}}>
+                    {showNewPass?"🙈":"👁️"}
+                  </button>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <button className="btn btn-ghost sm" style={{flex:1,fontFamily:"inherit"}} onClick={()=>{setResetTarget(null);setNewPass("");}}>
+                    {t.cancel}
+                  </button>
+                  <button className="btn btn-primary" style={{flex:1,fontFamily:"inherit"}} onClick={doReset} disabled={!newPass.trim()}>
+                    {t.save}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
