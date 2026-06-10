@@ -1,5 +1,3 @@
-bash
-cat > /home/claude/wc2026/src/App.jsx << 'ENDOFFILE'
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
@@ -43,10 +41,8 @@ const T = {
     championWinner:"قهرمان واقعی", setChampion:"ثبت قهرمان",
     selectTeam:"انتخاب تیم...",
     timezone:"Asia/Tehran", locale:"fa-IR",
-    showPass:"نمایش رمز", hidePass:"پنهان کردن",
-    resetPass:"ریست رمز", newPass:"رمز جدید", resetDone:"رمز ریست شد",
-    resetPassFor:"ریست رمز برای",
-    passwordReset:"رمز عبور ریست شد",
+    showPass:"نمایش رمز",
+    resetPass:"ریست رمز", newPass:"رمز جدید",
   },
   en: {
     dir:"ltr", appTitle:"World Cup 2026", appSubtitle:"Match Predictions",
@@ -86,58 +82,13 @@ const T = {
     championWinner:"Actual Champion", setChampion:"Set Champion",
     selectTeam:"Select team...",
     timezone:"America/Toronto", locale:"en-CA",
-    showPass:"Show", hidePass:"Hide",
-    resetPass:"Reset Password", newPass:"New Password", resetDone:"Password reset",
-    resetPassFor:"Reset password for",
-    passwordReset:"Password has been reset",
-  },
-  de: {
-    dir:"ltr", appTitle:"WM 2026", appSubtitle:"Tipp-Spiel",
-    login:"Anmelden", register:"Registrieren", logout:"Abmelden",
-    username:"Benutzername", password:"Passwort", confirmPassword:"Passwort bestätigen",
-    matches:"Spiele", leaderboard:"Rangliste", myPredictions:"Meine Tipps",
-    adminPanel:"Admin", predict:"Tippen", save:"Speichern", cancel:"Abbrechen",
-    home:"Heim", away:"Gast", totalPoints:"Gesamtpunkte",
-    predicted:"Getippt", notPredicted:"Nicht getippt",
-    upcoming:"Bevorstehend", finished:"Beendet",
-    group:"Gruppenphase", round32:"Runde der 32", round16:"Achtelfinale",
-    quarter:"Viertelfinale", semi:"Halbfinale", third:"Platz 3", final:"Finale",
-    setResult:"Ergebnis eintragen", addMatch:"Spiel hinzufügen",
-    userManagement:"Nutzer", deleteUser:"Löschen",
-    usernameExists:"Benutzername bereits vergeben",
-    wrongCredentials:"Falscher Benutzername oder Passwort", passwordMismatch:"Passwörter stimmen nicht überein",
-    fillAll:"Bitte alle Felder ausfüllen",
-    exactScore:"Genaues Ergebnis", correctDiff:"Richtiger Tordiff.", correctWinner:"Richtiger Sieger",
-    wrongResult:"Falsches Ergebnis", noPrediction:"Kein Tipp", pts:"Pkt.",
-    noMatches:"Noch keine Spiele eingetragen",
-    matchAdded:"Spiel hinzugefügt", resultSaved:"Ergebnis gespeichert", predictionSaved:"Tipp gespeichert",
-    predictionLocked:"⏰ Tippabgabe beendet", confirmDelete:"Sicher?",
-    myRank:"Mein Rang", totalPlayers:"Spieler", prediction:"Tipp", actual:"Ergebnis",
-    lockedBadge:"Gesperrt", groupLabel:"Gruppe", allGroups:"Alle Gruppen",
-    editPrediction:"Bearbeiten", groupStandings:"Gruppentabelle",
-    played:"Sp", won:"S", drawn:"U", lost:"N", gf:"Tore", ga:"Geg.", team:"Team",
-    pendingResults:"Spiele ohne Ergebnis",
-    knockoutBonus:"K.O.-Bonus", advanceCorrect:"Richtiger Aufsteiger",
-    methodCorrect:"Richtige Methode", method90:"90 Min.", methodET:"Verlängerung", methodPK:"Elfmeter",
-    advanceMethod:"Methode",
-    championTab:"Weltmeister", championPredict:"Weltmeister tippen",
-    championDeadline:"Abgabe: vor dem Eröffnungsspiel",
-    championLocked:"Tippabgabe für Weltmeister beendet",
-    championSaved:"Weltmeister-Tipp gespeichert",
-    everyonesPicks:"Alle Weltmeister-Tipps",
-    yourChampionPick:"Dein Tipp", notPicked:"Nicht getippt",
-    championWinner:"Weltmeister", setChampion:"Weltmeister festlegen",
-    selectTeam:"Team auswählen...",
-    timezone:"Europe/Berlin", locale:"de-DE",
-    showPass:"Anzeigen", hidePass:"Verbergen",
-    resetPass:"Passwort zurücksetzen", newPass:"Neues Passwort", resetDone:"Passwort zurückgesetzt",
-    resetPassFor:"Passwort zurücksetzen für",
-    passwordReset:"Passwort wurde zurückgesetzt",
+    showPass:"Show",
+    resetPass:"Reset Password", newPass:"New Password",
   },
 };
 
-const LANG_CYCLE={fa:"en",en:"de",de:"fa"};
-const LANG_BTN={fa:"EN",en:"DE",de:"فا"};
+const LANG_CYCLE={fa:"en",en:"fa"};
+const LANG_BTN={fa:"EN",en:"فا"};
 
 const ALL_TEAMS=[
   {name:"Algeria",flag:"🇩🇿"},{name:"Argentina",flag:"🇦🇷"},{name:"Australia",flag:"🇦🇺"},
@@ -290,34 +241,8 @@ function calcGroupStandings(matches){
 
 async function fbSet(path,value){const[c,i]=path.split("/");await setDoc(doc(db,c,i),{value});}
 
-// ─── PASSWORD INPUT COMPONENT ─────────────────────────────────────────────────
-function PassInput({placeholder,value,onChange,onKeyDown,name,id,t}){
-  const[show,setShow]=useState(false);
-  return(
-    <div style={{position:"relative"}}>
-      <input
-        className="inp" type={show?"text":"password"}
-        placeholder={placeholder} value={value} onChange={onChange}
-        onKeyDown={onKeyDown} name={name||"password"} id={id}
-        autoComplete={name==="new-password"?"new-password":"current-password"}
-        style={{paddingRight:lang==="fa"?"14px":"70px",paddingLeft:lang==="fa"?"70px":"14px"}}
-      />
-      <button type="button" onClick={()=>setShow(s=>!s)}
-        style={{position:"absolute",top:"50%",transform:"translateY(-50%)",
-          [document.documentElement.dir==="rtl"?"left":"right"]:"10px",
-          background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#8899bb",fontFamily:"inherit",padding:"2px 4px"}}>
-        {show?"🙈":"👁️"}
-      </button>
-    </div>
-  );
-}
-
-// workaround: expose lang to PassInput via module-level var
-let lang="fa";
-
 export default function App(){
   const[_lang,setLang]=useState("fa");
-  lang=_lang;
   const t=T[_lang];
   const[users,setUsers]=useState({});
   const[matches,setMatches]=useState([]);
@@ -468,15 +393,12 @@ function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
             <input className="inp" placeholder={t.username} value={form.username}
               onChange={e=>setForm(f=>({...f,username:e.target.value}))}
               name="username" autoComplete="username"/>
-            <PassInput t={t} placeholder={t.password} value={form.password}
+            <input className="inp" type="password" placeholder={t.password} value={form.password}
               onChange={e=>setForm(f=>({...f,password:e.target.value}))}
-              onKeyDown={e=>e.key==="Enter"&&onSubmit()}
-              name={authMode==="register"?"new-password":"current-password"}
-              id="main-pass"/>
+              onKeyDown={e=>e.key==="Enter"&&onSubmit()}/>
             {authMode==="register"&&
-              <PassInput t={t} placeholder={t.confirmPassword} value={form.confirm}
-                onChange={e=>setForm(f=>({...f,confirm:e.target.value}))}
-                name="new-password" id="confirm-pass"/>
+              <input className="inp" type="password" placeholder={t.confirmPassword} value={form.confirm}
+                onChange={e=>setForm(f=>({...f,confirm:e.target.value}))}/>
             }
             {authError&&<div style={{color:"#ff6b6b",fontSize:12,padding:"5px 10px",background:"rgba(220,50,50,.1)",borderRadius:6}}>{authError}</div>}
             <button className="btn btn-primary" onClick={onSubmit} style={{marginTop:4,fontFamily:"inherit"}}>{authMode==="login"?t.login:t.register}</button>
@@ -713,7 +635,7 @@ function StandingsTab({t,standings,matches}){
             ))}
           </tbody>
         </table>
-        <div style={{padding:"6px 12px",fontSize:11,color:"#667",borderTop:"1px solid rgba(255,255,255,.05)"}}>🟢 {lang==="fa"?"= صعود به مرحله بعد":lang==="de"?"= Aufstieg":"= Advance"}</div>
+        <div style={{padding:"6px 12px",fontSize:11,color:"#667",borderTop:"1px solid rgba(255,255,255,.05)"}}>🟢 {t.dir==="rtl"?"= صعود به مرحله بعد":"= Advance"}</div>
       </div>
       {gm.map(m=>{const res=m.result.home!==""&&m.result.away!=="";return(
         <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
@@ -808,10 +730,6 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
   const[resVal,setResVal]=useState({home:"",away:"",winner:"",method:""});
   const[nm,setNm]=useState({home:"",away:"",homeFlag:"",awayFlag:"",date:"",stage:"group",group:""});
   const[champWinner,setChampWinner]=useState(championData.winner||"");
-  // password reset state
-  const[resetUser,setResetUser]=useState(null);
-  const[newPassVal,setNewPassVal]=useState("");
-  const[showNewPass,setShowNewPass]=useState(false);
 
   const stages=["group","round32","round16","quarter","semi","third","final"];
   const pending=matches.filter(m=>new Date(m.date)<=new Date()&&(m.result.home===""||m.result.away==="")).length;
@@ -835,13 +753,6 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
     if(!confirm(t.confirmDelete))return;
     const nu={...users};delete nu[u];const np={...predictions};delete np[u];
     await saveUsers(nu);await savePreds(np);
-  };
-  const doResetPass=async()=>{
-    if(!newPassVal.trim())return;
-    const nu={...users,[resetUser]:{...users[resetUser],password:newPassVal}};
-    await saveUsers(nu);
-    setResetUser(null);setNewPassVal("");setShowNewPass(false);
-    showToast(`✓ ${t.passwordReset}: ${resetUser}`);
   };
 
   return(
@@ -922,46 +833,14 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
       {/* ── USERS ── */}
       {section==="users"&&(
         <div>
-          <div style={{fontSize:12,color:"#8899bb",marginBottom:10}}>👥 {Object.keys(users).length} {lang==="fa"?"کاربر":lang==="de"?"Nutzer":"users"}</div>
+          <div style={{fontSize:12,color:"#8899bb",marginBottom:10}}>👥 {Object.keys(users).length} {t.dir==="rtl"?"کاربر":"users"}</div>
           {Object.entries(users).map(([uname])=>{
             const pts=matches.reduce((s,m)=>m.result.home!==""?s+calcPoints(predictions[uname]?.[m.id],m.result,m.stage):s,0)
               +(championData.winner?calcChampionPoints(championData.picks?.[uname],championData.winner):0);
             return(
-              <div key={uname} className="card" style={{padding:"12px 14px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:600}}>👤 {uname}</div>
-                    <div style={{fontSize:11,color:"#8899bb"}}>{pts} {t.pts}</div>
-                  </div>
-                  <button className="btn btn-ghost sm" style={{fontFamily:"inherit",color:"#f0c040",borderColor:"rgba(240,192,64,.3)"}} onClick={()=>{setResetUser(uname);setNewPassVal("");setShowNewPass(false);}}>
-                    🔑 {t.resetPass}
-                  </button>
-                  <button className="btn btn-danger" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>delUser(uname)}>{t.deleteUser}</button>
-                </div>
-                {/* Inline reset password form */}
-                {resetUser===uname&&(
-                  <div style={{marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,.08)",display:"flex",flexDirection:"column",gap:8}}>
-                    <div style={{fontSize:12,color:"#f0c040",fontWeight:600}}>🔑 {t.resetPassFor}: <strong>{uname}</strong></div>
-                    <div style={{position:"relative"}}>
-                      <input
-                        className="inp"
-                        type={showNewPass?"text":"password"}
-                        placeholder={t.newPass}
-                        value={newPassVal}
-                        onChange={e=>setNewPassVal(e.target.value)}
-                        style={{paddingRight:"70px"}}
-                      />
-                      <button type="button" onClick={()=>setShowNewPass(s=>!s)}
-                        style={{position:"absolute",top:"50%",transform:"translateY(-50%)",right:"10px",background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#8899bb",fontFamily:"inherit"}}>
-                        {showNewPass?"🙈":"👁️"}
-                      </button>
-                    </div>
-                    <div style={{display:"flex",gap:8}}>
-                      <button className="btn btn-ghost sm" style={{flex:1,fontFamily:"inherit"}} onClick={()=>{setResetUser(null);setNewPassVal("");}}>{t.cancel}</button>
-                      <button className="btn btn-primary" style={{flex:1,fontFamily:"inherit"}} onClick={doResetPass} disabled={!newPassVal.trim()}>{t.save}</button>
-                    </div>
-                  </div>
-                )}
+              <div key={uname} className="card" style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{flex:1}}><div style={{fontWeight:600}}>👤 {uname}</div><div style={{fontSize:11,color:"#8899bb"}}>{pts} {t.pts}</div></div>
+                <button className="btn btn-danger" style={{padding:"5px 10px",fontSize:12,fontFamily:"inherit"}} onClick={()=>delUser(uname)}>{t.deleteUser}</button>
               </div>
             );
           })}
@@ -1050,7 +929,3 @@ const CSS=`
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .animate-in{animation:fadeIn .3s ease;}
 `;
-ENDOFFILE
-echo "Lines: $(wc -l < /home/claude/wc2026/src/App.jsx)"
-Output
-Lines: 1050
