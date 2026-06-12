@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { db } from "./firebase";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { useState, useEffect, useRef } from "react";
 
 const T = {
   fa: {
@@ -239,7 +237,19 @@ function calcGroupStandings(matches){
   return sorted;
 }
 
-async function fbSet(path,value){const[c,i]=path.split("/");await setDoc(doc(db,c,i),{value});}
+async function apiGet(key){
+  try{
+    const res=await fetch(`/api/data?key=${key}`);
+    if(!res.ok)return null;
+    const data=await res.json();
+    return data.value;
+  }catch{return null;}
+}
+async function apiSet(key,value){
+  try{
+    await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,value})});
+  }catch{}
+}
 
 export default function App(){
   const[_lang,setLang]=useState("fa");
@@ -257,25 +267,36 @@ export default function App(){
   const[loading,setLoading]=useState(true);
   const ADMIN_PASS="admin2026";
 
+  const pollRef=useRef(null);
+
+  const fetchAll=async()=>{
+    const [m,u,p,c]=await Promise.all([
+      apiGet("matches"),apiGet("users"),apiGet("predictions"),apiGet("champion")
+    ]);
+    if(m)setMatches(sortByDate(m));
+    else{setMatches(sortByDate(ALL_MATCHES));apiSet("matches",ALL_MATCHES);}
+    setUsers(u||{});
+    setPredictions(p||{});
+    setChampionData(c||{picks:{},winner:""});
+  };
+
   useEffect(()=>{
-    const u1=onSnapshot(doc(db,"data","matches"),s=>{
-      if(s.exists())setMatches(sortByDate(s.data().value));
-      else{setMatches(sortByDate(ALL_MATCHES));fbSet("data/matches",ALL_MATCHES);}
-    });
-    const u2=onSnapshot(doc(db,"data","users"),s=>{setUsers(s.exists()?s.data().value:{});});
-    const u3=onSnapshot(doc(db,"data","predictions"),s=>{setPredictions(s.exists()?s.data().value:{});});
-    const u4=onSnapshot(doc(db,"data","champion"),s=>{setChampionData(s.exists()?s.data().value:{picks:{},winner:""});});
-    const sess=localStorage.getItem("wc26_user")||sessionStorage.getItem("wc26_user");
-    if(sess)setCurrentUser(sess);
-    setLoading(false);
-    return()=>{u1();u2();u3();u4();};
+    (async()=>{
+      await fetchAll();
+      const sess=localStorage.getItem("wc26_user")||sessionStorage.getItem("wc26_user");
+      if(sess)setCurrentUser(sess);
+      setLoading(false);
+    })();
+    // poll every 8 seconds for near-real-time updates
+    pollRef.current=setInterval(fetchAll,8000);
+    return()=>clearInterval(pollRef.current);
   },[]);
 
   const showToast=msg=>{setToast(msg);setTimeout(()=>setToast(""),2800);};
-  const saveUsers=async u=>{setUsers(u);await fbSet("data/users",u);};
-  const saveMatches=async m=>{const s=sortByDate(m);setMatches(s);await fbSet("data/matches",s);};
-  const savePreds=async p=>{setPredictions(p);await fbSet("data/predictions",p);};
-  const saveChampion=async c=>{setChampionData(c);await fbSet("data/champion",c);};
+  const saveUsers=async u=>{setUsers(u);await apiSet("users",u);};
+  const saveMatches=async m=>{const s=sortByDate(m);setMatches(s);await apiSet("matches",s);};
+  const savePreds=async p=>{setPredictions(p);await apiSet("predictions",p);};
+  const saveChampion=async c=>{setChampionData(c);await apiSet("champion",c);};
 
   const handleAuth=async(rememberMe=false)=>{
     const{username,password,confirm}=form;
