@@ -295,22 +295,41 @@ export default function App(){
   const ADMIN_PASS="admin2026";
 
   const pollRef=useRef(null);
-  // Track local data we just wrote, so an incoming poll can't stomp it with stale data
-  const lastWriteRef=useRef({matches:0,users:0,predictions:0,champion:0});
-  const SUPPRESS_MS=15000; // ignore poll overwrites for this key for 15s after a local save
+  const seededRef=useRef(false);
+
+  // Merge incoming server matches with local matches: never let a non-empty
+  // result/winner/method be replaced by an empty one. This protects admin-entered
+  // results from being wiped out by stale reads, races, or duplicate seeding.
+  const mergeMatches=(serverList,localList)=>{
+    const localById={};
+    (localList||[]).forEach(m=>{localById[m.id]=m;});
+    return (serverList||[]).map(sm=>{
+      const lm=localById[sm.id];
+      if(!lm) return sm;
+      const sHas=sm.result&&sm.result.home!==""&&sm.result.away!=="";
+      const lHas=lm.result&&lm.result.home!==""&&lm.result.away!=="";
+      // Prefer whichever side actually has a result; if both have one, prefer server (latest write wins)
+      let result=sm.result;
+      if(!sHas&&lHas) result=lm.result;
+      return {...sm,result};
+    });
+  };
 
   const fetchAll=async()=>{
     const [m,u,p,c]=await Promise.all([
       apiGet("matches"),apiGet("users"),apiGet("predictions"),apiGet("champion")
     ]);
-    const now=Date.now();
-    if(now-lastWriteRef.current.matches>SUPPRESS_MS){
-      if(m)setMatches(sortByDate(m));
-      else{setMatches(sortByDate(ALL_MATCHES));apiSet("matches",ALL_MATCHES);}
+    if(m&&m.length){
+      setMatches(prev=>sortByDate(mergeMatches(m,prev)));
+    }else if(!seededRef.current){
+      // Only seed once, and only if the server truly has nothing
+      seededRef.current=true;
+      setMatches(sortByDate(ALL_MATCHES));
+      apiSet("matches",ALL_MATCHES);
     }
-    if(now-lastWriteRef.current.users>SUPPRESS_MS) setUsers(u||{});
-    if(now-lastWriteRef.current.predictions>SUPPRESS_MS) setPredictions(p||{});
-    if(now-lastWriteRef.current.champion>SUPPRESS_MS) setChampionData(c||{picks:{},winner:""});
+    setUsers(prev=>Object.keys(u||{}).length?u:prev);
+    setPredictions(prev=>Object.keys(p||{}).length?p:prev);
+    if(c&&(c.winner||Object.keys(c.picks||{}).length)) setChampionData(c);
   };
 
   useEffect(()=>{
@@ -326,10 +345,26 @@ export default function App(){
   },[]);
 
   const showToast=msg=>{setToast(msg);setTimeout(()=>setToast(""),2800);};
-  const saveUsers=async u=>{setUsers(u);lastWriteRef.current.users=Date.now();await apiSet("users",u);};
-  const saveMatches=async m=>{const s=sortByDate(m);setMatches(s);lastWriteRef.current.matches=Date.now();await apiSet("matches",s);};
-  const savePreds=async p=>{setPredictions(p);lastWriteRef.current.predictions=Date.now();await apiSet("predictions",p);};
-  const saveChampion=async c=>{setChampionData(c);lastWriteRef.current.champion=Date.now();await apiSet("champion",c);};
+  const saveUsers=async u=>{setUsers(u);await apiSet("users",u);};
+  const saveMatches=async m=>{
+    const s=sortByDate(m);
+    setMatches(s);
+    // Merge with the latest server copy first, so a concurrent save from
+    // another tab/admin doesn't get wiped out by this write.
+    const server=await apiGet("matches");
+    const merged=server&&server.length?sortByDate(mergeMatches(s,server).map((sm,idx)=>{
+      // mergeMatches above prefers server-having-result; but here `s` is the
+      // authoritative new edit, so flip preference: prefer `s` results.
+      const local=s.find(x=>x.id===sm.id);
+      if(!local) return sm;
+      const lHas=local.result&&local.result.home!==""&&local.result.away!=="";
+      return lHas?local:sm;
+    })):s;
+    setMatches(merged);
+    await apiSet("matches",merged);
+  };
+  const savePreds=async p=>{setPredictions(p);await apiSet("predictions",p);};
+  const saveChampion=async c=>{setChampionData(c);await apiSet("champion",c);};
 
   const handleAuth=async(rememberMe=false)=>{
     const{username,password,confirm}=form;
