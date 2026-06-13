@@ -239,7 +239,7 @@ function calcGroupStandings(matches){
 
 async function apiGet(key){
   try{
-    const res=await fetch(`/api/data?key=${key}`);
+    const res=await fetch(`/api/data?key=${key}`,{cache:"no-store"});
     if(!res.ok)return null;
     const data=await res.json();
     return data.value;
@@ -247,8 +247,9 @@ async function apiGet(key){
 }
 async function apiSet(key,value){
   try{
-    await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,value})});
-  }catch{}
+    const res=await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,value}),cache:"no-store"});
+    return res.ok;
+  }catch{return false;}
 }
 
 export default function App(){
@@ -268,16 +269,22 @@ export default function App(){
   const ADMIN_PASS="admin2026";
 
   const pollRef=useRef(null);
+  // Track local data we just wrote, so an incoming poll can't stomp it with stale data
+  const lastWriteRef=useRef({matches:0,users:0,predictions:0,champion:0});
+  const SUPPRESS_MS=15000; // ignore poll overwrites for this key for 15s after a local save
 
   const fetchAll=async()=>{
     const [m,u,p,c]=await Promise.all([
       apiGet("matches"),apiGet("users"),apiGet("predictions"),apiGet("champion")
     ]);
-    if(m)setMatches(sortByDate(m));
-    else{setMatches(sortByDate(ALL_MATCHES));apiSet("matches",ALL_MATCHES);}
-    setUsers(u||{});
-    setPredictions(p||{});
-    setChampionData(c||{picks:{},winner:""});
+    const now=Date.now();
+    if(now-lastWriteRef.current.matches>SUPPRESS_MS){
+      if(m)setMatches(sortByDate(m));
+      else{setMatches(sortByDate(ALL_MATCHES));apiSet("matches",ALL_MATCHES);}
+    }
+    if(now-lastWriteRef.current.users>SUPPRESS_MS) setUsers(u||{});
+    if(now-lastWriteRef.current.predictions>SUPPRESS_MS) setPredictions(p||{});
+    if(now-lastWriteRef.current.champion>SUPPRESS_MS) setChampionData(c||{picks:{},winner:""});
   };
 
   useEffect(()=>{
@@ -293,10 +300,10 @@ export default function App(){
   },[]);
 
   const showToast=msg=>{setToast(msg);setTimeout(()=>setToast(""),2800);};
-  const saveUsers=async u=>{setUsers(u);await apiSet("users",u);};
-  const saveMatches=async m=>{const s=sortByDate(m);setMatches(s);await apiSet("matches",s);};
-  const savePreds=async p=>{setPredictions(p);await apiSet("predictions",p);};
-  const saveChampion=async c=>{setChampionData(c);await apiSet("champion",c);};
+  const saveUsers=async u=>{setUsers(u);lastWriteRef.current.users=Date.now();await apiSet("users",u);};
+  const saveMatches=async m=>{const s=sortByDate(m);setMatches(s);lastWriteRef.current.matches=Date.now();await apiSet("matches",s);};
+  const savePreds=async p=>{setPredictions(p);lastWriteRef.current.predictions=Date.now();await apiSet("predictions",p);};
+  const saveChampion=async c=>{setChampionData(c);lastWriteRef.current.champion=Date.now();await apiSet("champion",c);};
 
   const handleAuth=async(rememberMe=false)=>{
     const{username,password,confirm}=form;
