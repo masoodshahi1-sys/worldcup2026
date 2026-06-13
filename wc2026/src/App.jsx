@@ -107,6 +107,32 @@ const ALL_TEAMS=[
   {name:"Uruguay",flag:"🇺🇾"},{name:"USA",flag:"🇺🇸"},{name:"Uzbekistan",flag:"🇺🇿"},
 ];
 
+// Persian (Farsi) team names
+const TEAM_NAME_FA={
+  "Algeria":"الجزایر","Argentina":"آرژانتین","Australia":"استرالیا",
+  "Austria":"اتریش","Belgium":"بلژیک","Bosnia and Herzegovina":"بوسنی و هرزگوین",
+  "Brazil":"برزیل","Canada":"کانادا","Cape Verde":"کیپ‌ورد",
+  "Colombia":"کلمبیا","Congo DR":"کنگو","Croatia":"کرواسی",
+  "Curaçao":"کوراسائو","Czechia":"چک","Ecuador":"اکوادور",
+  "Egypt":"مصر","England":"انگلستان","France":"فرانسه",
+  "Germany":"آلمان","Ghana":"غنا","Haiti":"هائیتی",
+  "Iran":"ایران","Iraq":"عراق","Ivory Coast":"ساحل عاج",
+  "Japan":"ژاپن","Jordan":"اردن","Mexico":"مکزیک",
+  "Morocco":"مراکش","Netherlands":"هلند","New Zealand":"نیوزیلند",
+  "Norway":"نروژ","Panama":"پاناما","Paraguay":"پاراگوئه",
+  "Portugal":"پرتغال","Qatar":"قطر","Saudi Arabia":"عربستان",
+  "Scotland":"اسکاتلند","Senegal":"سنگال","South Africa":"آفریقای جنوبی",
+  "South Korea":"کره جنوبی","Spain":"اسپانیا","Sweden":"سوئد",
+  "Switzerland":"سوئیس","Tunisia":"تونس","Türkiye":"ترکیه",
+  "Uruguay":"اروگوئه","USA":"آمریکا","Uzbekistan":"ازبکستان",
+};
+
+// Returns the team name in the appropriate language based on t.dir
+function teamName(name,t){
+  if(t.dir==="rtl") return TEAM_NAME_FA[name]||name;
+  return name;
+}
+
 const OPENING_MATCH_DATE="2026-06-11T19:00:00Z";
 
 const ALL_MATCHES=[
@@ -525,18 +551,18 @@ function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
                     <span style={{fontSize:11,color:"#667"}}>{fmtDate(m.date,t)}</span>
                   </div>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-                    <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:28}}>{m.homeFlag||"🏳️"}</div><div style={{fontWeight:700,fontSize:12,marginTop:3}}>{m.home}</div></div>
+                    <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:28}}>{m.homeFlag||"🏳️"}</div><div style={{fontWeight:700,fontSize:15,marginTop:3}}>{teamName(m.home,t)}</div></div>
                     <div style={{textAlign:"center",minWidth:90}}>
                       {res?<div style={{fontSize:28,fontWeight:900,color:"#f0c040",letterSpacing:3}}>{m.result.home} – {m.result.away}</div>:<div style={{fontSize:16,color:"#334",fontWeight:700}}>VS</div>}
                       {res&&m.result.method&&<div style={{fontSize:11,color:"#c080ff",marginTop:2}}>{m.result.method==="90"?t.method90:m.result.method==="ET"?t.methodET:t.methodPK}</div>}
                       {pts!==null&&<div style={{marginTop:5}}><span className={`pts-pill ${ptsCls(pts)}`}>{pts} {t.pts}</span></div>}
                     </div>
-                    <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:28}}>{m.awayFlag||"🏳️"}</div><div style={{fontWeight:700,fontSize:12,marginTop:3}}>{m.away}</div></div>
+                    <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:28}}>{m.awayFlag||"🏳️"}</div><div style={{fontWeight:700,fontSize:15,marginTop:3}}>{teamName(m.away,t)}</div></div>
                   </div>
                   <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid rgba(255,255,255,.05)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}}>
                     <div style={{fontSize:12,color:"#8899bb"}}>
                       {myP?.home!==undefined
-                        ?<span>📌 {t.prediction}: <strong style={{color:"#f0c040"}}>{myP.home}–{myP.away}</strong>{isKO(m)&&myP.winner&&<span style={{color:"#c080ff"}}> · {myP.winner===m.home?m.homeFlag:m.awayFlag} {myP.winner}{myP.method&&` (${myP.method==="90"?t.method90:myP.method==="ET"?t.methodET:t.methodPK})`}</span>}</span>
+                        ?<span>📌 {t.prediction}: <strong style={{color:"#f0c040"}}>{myP.home}–{myP.away}</strong>{isKO(m)&&myP.winner&&<span style={{color:"#c080ff"}}> · {myP.winner===m.home?m.homeFlag:m.awayFlag} {teamName(myP.winner,t)}{myP.method&&` (${myP.method==="90"?t.method90:myP.method==="ET"?t.methodET:t.methodPK})`}</span>}</span>
                         :<span style={{color:"#445"}}>— {t.notPredicted}</span>}
                     </div>
                     {!locked&&<button className="btn btn-primary" style={{padding:"6px 14px",fontSize:12,fontFamily:"inherit"}} onClick={()=>openPred(m)}>{myP?"✏️ "+t.editPrediction:"⚽ "+t.predict}</button>}
@@ -551,13 +577,13 @@ function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
         <Modal onClose={()=>setPredModal(null)}>
           <div style={{textAlign:"center",marginBottom:14}}>
             <div style={{fontSize:11,color:"#8899bb",marginBottom:6}}>{isKO(predModal)?"⚡ "+t.knockoutBonus:"⚽ "+t.predict}</div>
-            <div style={{fontWeight:700,fontSize:14}}>{predModal.homeFlag} {predModal.home} vs {predModal.awayFlag} {predModal.away}</div>
+            <div style={{fontWeight:700,fontSize:15}}>{predModal.homeFlag} {teamName(predModal.home,t)} vs {predModal.awayFlag} {teamName(predModal.away,t)}</div>
             <div style={{fontSize:11,color:"#667",marginTop:4}}>{fmtDate(predModal.date,t)}</div>
           </div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:14,margin:"14px 0"}}>
-            <div style={{textAlign:"center"}}><div style={{fontSize:11,color:"#8899bb",marginBottom:5}}>{predModal.home}</div><input type="number" min="0" max="20" className="score-input" value={predVal.home} onChange={e=>setPredVal(v=>({...v,home:e.target.value}))}/></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:13,color:"#8899bb",marginBottom:5}}>{teamName(predModal.home,t)}</div><input type="number" min="0" max="20" className="score-input" value={predVal.home} onChange={e=>setPredVal(v=>({...v,home:e.target.value}))}/></div>
             <div style={{fontSize:22,color:"#f0c040",fontWeight:900}}>–</div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:11,color:"#8899bb",marginBottom:5}}>{predModal.away}</div><input type="number" min="0" max="20" className="score-input" value={predVal.away} onChange={e=>setPredVal(v=>({...v,away:e.target.value}))}/></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:13,color:"#8899bb",marginBottom:5}}>{teamName(predModal.away,t)}</div><input type="number" min="0" max="20" className="score-input" value={predVal.away} onChange={e=>setPredVal(v=>({...v,away:e.target.value}))}/></div>
           </div>
           {isKO(predModal)&&(
             <div style={{background:"rgba(180,100,255,.08)",border:"1px solid rgba(180,100,255,.2)",borderRadius:10,padding:"12px",marginTop:4}}>
@@ -566,8 +592,8 @@ function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
                 <div style={{fontSize:11,color:"#8899bb",marginBottom:6}}>{t.advanceCorrect} (+3)</div>
                 <div style={{display:"flex",gap:6}}>
                   {[{name:predModal.home,flag:predModal.homeFlag},{name:predModal.away,flag:predModal.awayFlag}].map(tm=>(
-                    <button key={tm.name} onClick={()=>setPredVal(v=>({...v,winner:tm.name}))} style={{flex:1,padding:"8px",border:`1px solid ${predVal.winner===tm.name?"rgba(180,100,255,.6)":"rgba(255,255,255,.12)"}`,borderRadius:8,background:predVal.winner===tm.name?"rgba(180,100,255,.2)":"rgba(255,255,255,.05)",color:"#e8eaf0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13}}>
-                      {tm.flag} {tm.name}
+                    <button key={tm.name} onClick={()=>setPredVal(v=>({...v,winner:tm.name}))} style={{flex:1,padding:"8px",border:`1px solid ${predVal.winner===tm.name?"rgba(180,100,255,.6)":"rgba(255,255,255,.12)"}`,borderRadius:8,background:predVal.winner===tm.name?"rgba(180,100,255,.2)":"rgba(255,255,255,.05)",color:"#e8eaf0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:14}}>
+                      {tm.flag} {teamName(tm.name,t)}
                     </button>
                   ))}
                 </div>
@@ -615,14 +641,14 @@ function ChampionTab({t,users,championData,saveChampion,currentUser,championLock
         {winner&&(
           <div style={{background:"rgba(80,224,128,.1)",border:"1px solid rgba(80,224,128,.3)",borderRadius:10,padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
             <span style={{fontSize:28}}>{teamInfo(winner).flag}</span>
-            <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.championWinner}</div><div style={{fontWeight:700,fontSize:16,color:"#50e080"}}>{winner}</div></div>
+            <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.championWinner}</div><div style={{fontWeight:700,fontSize:18,color:"#50e080"}}>{teamName(winner,t)}</div></div>
             {myPick===winner&&<span style={{background:"rgba(240,192,64,.2)",color:"#f0c040",padding:"2px 10px",borderRadius:20,fontSize:12,fontWeight:700}}>+30 🎉</span>}
           </div>
         )}
         {myPick?(
           <div style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:"rgba(255,255,255,.04)",borderRadius:10,marginBottom:10}}>
             <span style={{fontSize:26}}>{teamInfo(myPick).flag}</span>
-            <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.yourChampionPick}</div><div style={{fontWeight:700}}>{myPick}</div></div>
+            <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.yourChampionPick}</div><div style={{fontWeight:700,fontSize:16}}>{teamName(myPick,t)}</div></div>
             {!championLocked&&<button className="btn btn-ghost sm" style={{fontFamily:"inherit"}} onClick={()=>setSel(myPick)}>✏️</button>}
           </div>
         ):championLocked?<div style={{color:"#ff8060",fontSize:13,padding:"8px 0"}}>🔒 {t.championLocked}</div>:null}
@@ -630,7 +656,7 @@ function ChampionTab({t,users,championData,saveChampion,currentUser,championLock
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <select className="inp" style={{flex:1}} value={sel} onChange={e=>setSel(e.target.value)}>
               <option value="">{t.selectTeam}</option>
-              {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=><option key={tm.name} value={tm.name}>{tm.flag} {tm.name}</option>)}
+              {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=><option key={tm.name} value={tm.name}>{tm.flag} {teamName(tm.name,t)}</option>)}
             </select>
             <button className="btn btn-primary" style={{fontFamily:"inherit"}} onClick={doSave} disabled={!sel}>{t.save}</button>
           </div>
@@ -642,7 +668,7 @@ function ChampionTab({t,users,championData,saveChampion,currentUser,championLock
         return(
           <div key={uname} className="card" style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",border:correct?"1px solid rgba(80,224,128,.3)":"1px solid rgba(255,255,255,.07)"}}>
             <div style={{fontSize:22}}>{pick?teamInfo(pick).flag:"❓"}</div>
-            <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>👤 {uname}</div><div style={{fontSize:12,color:pick?"#e8eaf0":"#556"}}>{pick||t.notPicked}</div></div>
+            <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>👤 {uname}</div><div style={{fontSize:13,color:pick?"#e8eaf0":"#556"}}>{pick?teamName(pick,t):t.notPicked}</div></div>
             {correct&&<span style={{background:"rgba(80,224,128,.2)",color:"#50e080",padding:"2px 10px",borderRadius:20,fontSize:12,fontWeight:700}}>+30 ✓</span>}
           </div>
         );
@@ -698,9 +724,9 @@ function StandingsTab({t,standings,matches}){
       </div>
       {gm.map(m=>{const res=m.result.home!==""&&m.result.away!=="";return(
         <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
-          <div style={{flex:1,fontSize:13,fontWeight:600}}>{m.homeFlag} {m.home}</div>
+          <div style={{flex:1,fontSize:15,fontWeight:600}}>{m.homeFlag} {teamName(m.home,t)}</div>
           <div style={{textAlign:"center",minWidth:80}}>{res?<span style={{fontSize:17,fontWeight:900,color:"#f0c040"}}>{m.result.home} – {m.result.away}</span>:<span style={{fontSize:11,color:"#445"}}>{fmtDate(m.date,t,true)}</span>}</div>
-          <div style={{flex:1,fontSize:13,fontWeight:600,textAlign:"end"}}>{m.away} {m.awayFlag}</div>
+          <div style={{flex:1,fontSize:15,fontWeight:600,textAlign:"end"}}>{teamName(m.away,t)} {m.awayFlag}</div>
         </div>
       );})}
     </div>
@@ -727,7 +753,7 @@ function LeaderboardTab({t,leaderboard,currentUser,championData}){
           <div style={{width:32,textAlign:"center",fontSize:i<3?20:13,fontWeight:700,color:i<3?"#f0c040":"#556"}}>{i<3?medals[i]:`#${i+1}`}</div>
           <div style={{flex:1}}>
             <div style={{fontWeight:600,fontSize:14}}>{e.user}</div>
-            {championData.picks?.[e.user]&&<div style={{fontSize:11,color:"#8899bb"}}>🏆 {championData.picks[e.user]}{championData.winner===championData.picks[e.user]&&" ✓"}</div>}
+            {championData.picks?.[e.user]&&<div style={{fontSize:11,color:"#8899bb"}}>🏆 {teamName(championData.picks[e.user],t)}{championData.winner===championData.picks[e.user]&&" ✓"}</div>}
           </div>
           <div style={{textAlign:"center"}}>
             <div style={{fontWeight:900,fontSize:20,color:i===0?"#f0c040":i===1?"#b0c8e0":i===2?"#e0a060":"#e8eaf0"}}>{e.pts}</div>
@@ -756,13 +782,13 @@ function MyPredsTab({t,matches,predictions,currentUser,championData}){
       {championData.picks?.[currentUser]&&(
         <div className="card" style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",marginBottom:4,background:"rgba(240,192,64,.05)",border:"1px solid rgba(240,192,64,.2)"}}>
           <span style={{fontSize:22}}>🏆</span>
-          <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.championPredict}</div><div style={{fontWeight:700}}>{championData.picks[currentUser]}</div></div>
+          <div style={{flex:1}}><div style={{fontSize:11,color:"#8899bb"}}>{t.championPredict}</div><div style={{fontWeight:700,fontSize:16}}>{teamName(championData.picks[currentUser],t)}</div></div>
           {championData.winner&&<span className={`pts-pill ${championData.winner===championData.picks[currentUser]?"pts-10":"pts-0"}`}>{championData.winner===championData.picks[currentUser]?"+30":"0"}</span>}
         </div>
       )}
       {done.map(m=>{const p=myP[m.id];const pts=calcPoints(p,m.result,m.stage);return(
         <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",flexWrap:"wrap"}}>
-          <div style={{flex:1,minWidth:120,fontSize:13,fontWeight:600}}>{m.homeFlag} {m.home} vs {m.awayFlag} {m.away}</div>
+          <div style={{flex:1,minWidth:120,fontSize:14,fontWeight:600}}>{m.homeFlag} {teamName(m.home,t)} vs {m.awayFlag} {teamName(m.away,t)}</div>
           <div style={{textAlign:"center",minWidth:46}}><div style={{fontSize:10,color:"#8899bb"}}>{t.actual}</div><div style={{fontWeight:700,color:"#f0c040"}}>{m.result.home}–{m.result.away}</div></div>
           <div style={{textAlign:"center",minWidth:46}}><div style={{fontSize:10,color:"#8899bb"}}>{t.prediction}</div><div style={{fontWeight:700,color:"#aab"}}>{p?`${p.home}–${p.away}`:"—"}</div></div>
           <span className={`pts-pill ${ptsCls(pts)}`} style={{fontSize:13,padding:"3px 10px"}}>{pts}</span>
@@ -772,7 +798,7 @@ function MyPredsTab({t,matches,predictions,currentUser,championData}){
         <div style={{margin:"14px 0 8px",color:"#8899bb",fontSize:11,letterSpacing:2}}>── {t.upcoming.toUpperCase()} ──</div>
         {upcoming.map(m=>{const p=myP[m.id];return(
           <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"9px 14px",opacity:.6}}>
-            <div style={{flex:1,fontSize:13}}>{m.homeFlag} {m.home} vs {m.awayFlag} {m.away}</div>
+            <div style={{flex:1,fontSize:14}}>{m.homeFlag} {teamName(m.home,t)} vs {m.awayFlag} {teamName(m.away,t)}</div>
             <div style={{fontSize:12,color:p?"#f0c040":"#445"}}>{p?`📌 ${p.home}–${p.away}`:`— ${t.notPredicted}`}</div>
           </div>
         );})}
@@ -833,7 +859,7 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
             <div style={{display:"flex",gap:8}}>
               <select className="inp" style={{flex:1}} value={champWinner} onChange={e=>setChampWinner(e.target.value)}>
                 <option value="">{t.selectTeam}</option>
-                {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=><option key={tm.name} value={tm.name}>{tm.flag} {tm.name}</option>)}
+                {ALL_TEAMS.sort((a,b)=>a.name.localeCompare(b.name)).map(tm=><option key={tm.name} value={tm.name}>{tm.flag} {teamName(tm.name,t)}</option>)}
               </select>
               <button className="btn btn-primary" style={{fontFamily:"inherit"}} onClick={saveChampWinner}>{t.save}</button>
             </div>
@@ -843,7 +869,7 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
           {Object.entries(users).map(([u])=>(
             <div key={u} className="card" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
               <div style={{flex:1,fontWeight:600}}>👤 {u}</div>
-              <div style={{fontSize:13,color:championData.picks?.[u]?"#e8eaf0":"#445"}}>{championData.picks?.[u]||"—"}</div>
+              <div style={{fontSize:13,color:championData.picks?.[u]?"#e8eaf0":"#445"}}>{championData.picks?.[u]?teamName(championData.picks[u],t):"—"}</div>
             </div>
           ))}
         </div>
@@ -876,7 +902,7 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
               {sm.map(m=>(
                 <div key={m.id} className="card" style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",padding:"10px 12px"}}>
                   <div style={{flex:1,minWidth:140}}>
-                    <div style={{fontWeight:600,fontSize:13}}>{m.homeFlag} {m.home} vs {m.awayFlag} {m.away}</div>
+                    <div style={{fontWeight:600,fontSize:14}}>{m.homeFlag} {teamName(m.home,t)} vs {m.awayFlag} {teamName(m.away,t)}</div>
                     <div style={{fontSize:11,color:"#8899bb",marginTop:2}}>{fmtDate(m.date,t)}</div>
                   </div>
                   {m.result.home!==""?<span className="badge badge-green">{m.result.home}–{m.result.away}{m.result.method&&` (${m.result.method})`}</span>:<span className="badge badge-blue">—</span>}
@@ -897,11 +923,11 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
       {/* Set Result Modal */}
       {editResult&&(
         <Modal onClose={()=>setEditResult(null)}>
-          <div style={{textAlign:"center",marginBottom:12,fontWeight:700,fontSize:14}}>{editResult.homeFlag} {editResult.home} vs {editResult.awayFlag} {editResult.away}</div>
+          <div style={{textAlign:"center",marginBottom:12,fontWeight:700,fontSize:15}}>{editResult.homeFlag} {teamName(editResult.home,t)} vs {editResult.awayFlag} {teamName(editResult.away,t)}</div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:14,margin:"12px 0"}}>
-            <div style={{textAlign:"center"}}><div style={{fontSize:11,color:"#8899bb",marginBottom:5}}>{editResult.home}</div><input type="number" min="0" max="20" className="score-input" value={resVal.home} onChange={e=>setResVal(v=>({...v,home:e.target.value}))}/></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:13,color:"#8899bb",marginBottom:5}}>{teamName(editResult.home,t)}</div><input type="number" min="0" max="20" className="score-input" value={resVal.home} onChange={e=>setResVal(v=>({...v,home:e.target.value}))}/></div>
             <div style={{fontSize:22,color:"#f0c040",fontWeight:900}}>–</div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:11,color:"#8899bb",marginBottom:5}}>{editResult.away}</div><input type="number" min="0" max="20" className="score-input" value={resVal.away} onChange={e=>setResVal(v=>({...v,away:e.target.value}))}/></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:13,color:"#8899bb",marginBottom:5}}>{teamName(editResult.away,t)}</div><input type="number" min="0" max="20" className="score-input" value={resVal.away} onChange={e=>setResVal(v=>({...v,away:e.target.value}))}/></div>
           </div>
           {isKO(editResult)&&(
             <div style={{background:"rgba(180,100,255,.08)",border:"1px solid rgba(180,100,255,.2)",borderRadius:10,padding:"12px",marginBottom:8}}>
@@ -910,8 +936,8 @@ function AdminTab({t,matches,saveMatches,users,saveUsers,predictions,savePreds,c
                 <div style={{fontSize:11,color:"#8899bb",marginBottom:6}}>{t.advanceCorrect}</div>
                 <div style={{display:"flex",gap:6}}>
                   {[{name:editResult.home,flag:editResult.homeFlag},{name:editResult.away,flag:editResult.awayFlag}].map(tm=>(
-                    <button key={tm.name} onClick={()=>setResVal(v=>({...v,winner:tm.name}))} style={{flex:1,padding:"7px",border:`1px solid ${resVal.winner===tm.name?"rgba(180,100,255,.6)":"rgba(255,255,255,.12)"}`,borderRadius:8,background:resVal.winner===tm.name?"rgba(180,100,255,.2)":"rgba(255,255,255,.05)",color:"#e8eaf0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13}}>
-                      {tm.flag} {tm.name}
+                    <button key={tm.name} onClick={()=>setResVal(v=>({...v,winner:tm.name}))} style={{flex:1,padding:"7px",border:`1px solid ${resVal.winner===tm.name?"rgba(180,100,255,.6)":"rgba(255,255,255,.12)"}`,borderRadius:8,background:resVal.winner===tm.name?"rgba(180,100,255,.2)":"rgba(255,255,255,.05)",color:"#e8eaf0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:14}}>
+                      {tm.flag} {teamName(tm.name,t)}
                     </button>
                   ))}
                 </div>
