@@ -294,77 +294,41 @@ export default function App(){
   const[loading,setLoading]=useState(true);
   const ADMIN_PASS="admin2026";
 
-  const pollRef=useRef(null);
   const seededRef=useRef(false);
 
-  // Merge incoming server matches with local matches: never let a non-empty
-  // result/winner/method be replaced by an empty one. This protects admin-entered
-  // results from being wiped out by stale reads, races, or duplicate seeding.
-  const mergeMatches=(serverList,localList)=>{
-    const localById={};
-    (localList||[]).forEach(m=>{localById[m.id]=m;});
-    return (serverList||[]).map(sm=>{
-      const lm=localById[sm.id];
-      if(!lm) return sm;
-      const sHas=sm.result&&sm.result.home!==""&&sm.result.away!=="";
-      const lHas=lm.result&&lm.result.home!==""&&lm.result.away!=="";
-      // Prefer whichever side actually has a result; if both have one, prefer server (latest write wins)
-      let result=sm.result;
-      if(!sHas&&lHas) result=lm.result;
-      return {...sm,result};
-    });
-  };
-
-  const fetchAll=async()=>{
-    const [m,u,p,c]=await Promise.all([
+  const loadAll=async()=>{
+    const [m,u,p,ch]=await Promise.all([
       apiGet("matches"),apiGet("users"),apiGet("predictions"),apiGet("champion")
     ]);
     if(m&&m.length){
-      setMatches(prev=>sortByDate(mergeMatches(m,prev)));
+      setMatches(sortByDate(m));
     }else if(!seededRef.current){
-      // Only seed once, and only if the server truly has nothing
       seededRef.current=true;
       setMatches(sortByDate(ALL_MATCHES));
-      apiSet("matches",ALL_MATCHES);
+      await apiSet("matches",ALL_MATCHES);
     }
-    setUsers(prev=>Object.keys(u||{}).length?u:prev);
-    setPredictions(prev=>Object.keys(p||{}).length?p:prev);
-    if(c&&(c.winner||Object.keys(c.picks||{}).length)) setChampionData(c);
+    if(u&&Object.keys(u).length) setUsers(u);
+    if(p&&Object.keys(p).length) setPredictions(p);
+    if(ch&&(ch.winner||Object.keys(ch.picks||{}).length)) setChampionData(ch);
   };
 
   useEffect(()=>{
     (async()=>{
-      await fetchAll();
+      await loadAll();
       const sess=localStorage.getItem("wc26_user")||sessionStorage.getItem("wc26_user");
       if(sess)setCurrentUser(sess);
       setLoading(false);
     })();
-    // poll every 8 seconds for near-real-time updates
-    pollRef.current=setInterval(fetchAll,8000);
-    return()=>clearInterval(pollRef.current);
+    // NO automatic polling — polling caused stale data to overwrite admin-entered results.
+    // Each page load/refresh fetches fresh data from KV.
   },[]);
 
   const showToast=msg=>{setToast(msg);setTimeout(()=>setToast(""),2800);};
   const saveUsers=async u=>{setUsers(u);await apiSet("users",u);};
-  const saveMatches=async m=>{
-    const s=sortByDate(m);
-    setMatches(s);
-    // Merge with the latest server copy first, so a concurrent save from
-    // another tab/admin doesn't get wiped out by this write.
-    const server=await apiGet("matches");
-    const merged=server&&server.length?sortByDate(mergeMatches(s,server).map((sm,idx)=>{
-      // mergeMatches above prefers server-having-result; but here `s` is the
-      // authoritative new edit, so flip preference: prefer `s` results.
-      const local=s.find(x=>x.id===sm.id);
-      if(!local) return sm;
-      const lHas=local.result&&local.result.home!==""&&local.result.away!=="";
-      return lHas?local:sm;
-    })):s;
-    setMatches(merged);
-    await apiSet("matches",merged);
-  };
+  const saveMatches=async m=>{const s=sortByDate(m);setMatches(s);await apiSet("matches",s);};
   const savePreds=async p=>{setPredictions(p);await apiSet("predictions",p);};
-  const saveChampion=async c=>{setChampionData(c);await apiSet("champion",c);};
+  const saveChampion=async ch=>{setChampionData(ch);await apiSet("champion",ch);};
+
 
   const handleAuth=async(rememberMe=false)=>{
     const{username,password,confirm}=form;
