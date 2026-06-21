@@ -343,12 +343,16 @@ export default function App(){
     }
     if(authMode==="register"){
       if(password!==confirm)return setAuthError(t.passwordMismatch);
-      if(users[username])return setAuthError(t.usernameExists);
-      const nu={...users,[username]:{password,createdAt:Date.now()}};
+      const serverUsers=await apiGet("users");
+      const base=serverUsers&&Object.keys(serverUsers).length?serverUsers:users;
+      if(base[username])return setAuthError(t.usernameExists);
+      const nu={...base,[username]:{password,createdAt:Date.now()}};
       await saveUsers(nu);setCurrentUser(username);persist(username);
       setAuthError("");setForm({username:"",password:"",confirm:""});
     }else{
-      if(!users[username]||users[username].password!==password)return setAuthError(t.wrongCredentials);
+      const serverUsers=await apiGet("users");
+      const base=serverUsers&&Object.keys(serverUsers).length?serverUsers:users;
+      if(!base[username]||base[username].password!==password)return setAuthError(t.wrongCredentials);
       setCurrentUser(username);persist(username);
       setAuthError("");setForm({username:"",password:"",confirm:""});
     }
@@ -510,7 +514,12 @@ function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
     if(predVal.home===""||predVal.away==="")return;
     const entry={home:predVal.home,away:predVal.away};
     if(isKO(predModal)){entry.winner=predVal.winner;entry.method=predVal.method;}
-    await savePreds({...predictions,[currentUser]:{...(predictions[currentUser]||{}),[predModal.id]:entry}});
+    // Fetch the latest predictions from the server first, so this save can
+    // never wipe out predictions (this user's or anyone else's) that were
+    // written after this browser tab last loaded its local state.
+    const serverPreds=await apiGet("predictions");
+    const base=serverPreds||predictions;
+    await savePreds({...base,[currentUser]:{...(base[currentUser]||{}),[predModal.id]:entry}});
     setPredModal(null);showToast(t.predictionSaved);
   };
   const groups=[...new Set(matches.filter(m=>m.stage==="group").map(m=>m.group))].sort();
@@ -629,7 +638,9 @@ function ChampionTab({t,users,championData,saveChampion,currentUser,championLock
   const teamInfo=name=>ALL_TEAMS.find(t=>t.name===name)||{name,flag:"🏳️"};
   const doSave=async()=>{
     if(!sel)return;
-    await saveChampion({...championData,picks:{...(championData.picks||{}),[currentUser]:sel}});
+    const server=await apiGet("champion");
+    const base=server&&(server.winner||Object.keys(server.picks||{}).length)?server:championData;
+    await saveChampion({...base,picks:{...(base.picks||{}),[currentUser]:sel}});
     showToast(t.championSaved);
   };
   return(
