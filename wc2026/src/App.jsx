@@ -408,7 +408,7 @@ export default function App(){
               ))}
             </div>
             <div className="animate-in">
-              {tab==="matches"       &&<MatchesTab t={t} matches={matches} predictions={predictions} currentUser={currentUser} savePreds={savePreds} showToast={showToast}/>}
+              {tab==="matches"       &&<MatchesTab t={t} matches={matches} predictions={predictions} users={users} currentUser={currentUser} savePreds={savePreds} showToast={showToast}/>}
               {tab==="champion"      &&<ChampionTab t={t} users={users} championData={championData} saveChampion={saveChampion} currentUser={currentUser} championLocked={championLocked} showToast={showToast}/>}
               {tab==="standings"     &&<StandingsTab t={t} standings={calcGroupStandings(matches)} matches={matches}/>}
               {tab==="leaderboard"   &&<LeaderboardTab t={t} leaderboard={getLeaderboard()} currentUser={currentUser} championData={championData}/>}
@@ -498,7 +498,7 @@ function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
 }
 
 // ─── MATCHES TAB ─────────────────────────────────────────────────────────────
-function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
+function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast}){
   const[predModal,setPredModal]=useState(null);
   const[predVal,setPredVal]=useState({home:"",away:"",winner:"",method:""});
   const[filterGroup,setFilterGroup]=useState("all");
@@ -526,6 +526,63 @@ function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
   const displayed=matches.filter(m=>filterGroup==="all"||m.group===filterGroup||m.stage!=="group");
   const byStage={};
   displayed.forEach(m=>{(byStage[m.stage]=byStage[m.stage]||[]).push(m);});
+
+  const renderAllPreds=(m)=>{
+    const res=hasResult(m);
+    const userList=Object.keys(predictions).filter(u=>u!=="admin").sort();
+    if(!userList.length) return null;
+    const isRtl=t.dir==="rtl";
+    return(
+      <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid rgba(255,255,255,.07)"}}>
+        <div style={{fontSize:10,color:"#556",letterSpacing:2,fontWeight:700,marginBottom:8,textTransform:"uppercase"}}>
+          {isRtl?"🏅 پیش‌بینی همه اعضا":"🏅 All Predictions"}
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:3}}>
+          {userList.map(u=>{
+            const p=predictions[u]?.[m.id];
+            const pts=res&&p?calcPoints(p,m.result,m.stage):null;
+            const isMe=u===currentUser;
+            return(
+              <div key={u} style={{
+                display:"flex",alignItems:"center",gap:8,padding:"5px 8px",
+                borderRadius:8,fontSize:12,
+                background:isMe?"rgba(240,192,64,.1)":"rgba(255,255,255,.03)",
+                border:isMe?"1px solid rgba(240,192,64,.25)":"1px solid transparent"
+              }}>
+                <span style={{fontWeight:isMe?700:500,color:isMe?"#f0c040":"#aab",minWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flexShrink:0}}>
+                  {isMe?"★ "+u:u}
+                </span>
+                <div style={{flex:1,display:"flex",alignItems:"center",gap:6}}>
+                  {p
+                    ?<>
+                      <span style={{fontWeight:700,color:isMe?"#f0c040":"#e8eaf0",letterSpacing:1,minWidth:30,textAlign:"center"}}>
+                        {p.home}–{p.away}
+                      </span>
+                      {isKO(m)&&p.winner&&
+                        <span style={{fontSize:11,color:"#c080ff"}}>
+                          {p.winner===m.home?m.homeFlag:m.awayFlag} {teamName(p.winner,t)}
+                        </span>
+                      }
+                    </>
+                    :<span style={{color:"#445",fontStyle:"italic",fontSize:11}}>
+                      {isRtl?"—":"—"}
+                    </span>
+                  }
+                </div>
+                {pts!==null
+                  ?<span className={`pts-pill ${ptsCls(pts)}`} style={{fontSize:11,padding:"1px 7px",flexShrink:0}}>
+                    {pts} {t.pts}
+                  </span>
+                  :p&&<span style={{fontSize:11,color:"#445",flexShrink:0}}>—</span>
+                }
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return(
     <div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
@@ -575,6 +632,7 @@ function MatchesTab({t,matches,predictions,currentUser,savePreds,showToast}){
                     </div>
                     {!locked&&<button className="btn btn-primary" style={{padding:"6px 14px",fontSize:12,fontFamily:"inherit"}} onClick={()=>openPred(m)}>{myP?"✏️ "+t.editPrediction:"⚽ "+t.predict}</button>}
                   </div>
+                  {locked&&renderAllPreds(m)}
                 </div>
               );
             })}
