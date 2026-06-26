@@ -400,7 +400,7 @@ export default function App(){
         {!currentUser
           ?<AuthPanel t={t} form={form} setForm={setForm} authMode={authMode} setAuthMode={setAuthMode} authError={authError} onSubmit={handleAuth}/>
           :<>
-            <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,.08)",marginBottom:16,overflowX:"auto",paddingTop:8}}>
+            <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,.08)",marginBottom:16,overflowX:"auto",paddingTop:8,position:"sticky",top:58,zIndex:90,background:"#070d1c",backdropFilter:"blur(12px)"}}>
               {["matches","champion","standings","leaderboard","myPredictions",...(isAdmin?["adminPanel"]:[])].map(k=>(
                 <button key={k} className={`tab-btn${tab===k?" active":""}`} onClick={()=>setTab(k)}>
                   {k==="matches"?"⚽ "+t.matches:k==="champion"?"🏆 "+t.championTab:k==="standings"?"📊 "+t.groupStandings:k==="leaderboard"?"🥇 "+t.leaderboard:k==="myPredictions"?"📋 "+t.myPredictions:"⚙️ "+t.adminPanel}
@@ -529,7 +529,7 @@ function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast
 
   const renderAllPreds=(m)=>{
     const res=hasResult(m);
-    const userList=Object.keys(predictions).filter(u=>u!=="admin").sort();
+    const userList=Object.keys(users||{}).filter(u=>u!=="admin").sort();
     if(!userList.length) return null;
     const isRtl=t.dir==="rtl";
     return(
