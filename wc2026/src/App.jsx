@@ -208,6 +208,8 @@ const ALL_MATCHES=[
   {id:"l4",home:"Panama",homeFlag:"🇵🇦",away:"Croatia",awayFlag:"🇭🇷",date:"2026-06-23T23:00Z",stage:"group",group:"L",result:{home:"",away:""}},
   {id:"l5",home:"England",homeFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",away:"Panama",awayFlag:"🇵🇦",date:"2026-06-27T21:00Z",stage:"group",group:"L",result:{home:"",away:""}},
   {id:"l6",home:"Croatia",homeFlag:"🇭🇷",away:"Ghana",awayFlag:"🇬🇭",date:"2026-06-27T21:00Z",stage:"group",group:"L",result:{home:"",away:""}},
+  // ─── ROUND OF 32 (یک‌شانزدهم نهایی) ─────────────────────────────────────────
+  {id:"r32_73",home:"South Africa",homeFlag:"🇿🇦",away:"Canada",awayFlag:"🇨🇦",date:"2026-06-28T19:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
 ];
 
 const STAGE_ORDER=["group","round32","round16","quarter","semi","third","final"];
