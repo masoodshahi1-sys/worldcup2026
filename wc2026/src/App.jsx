@@ -5,11 +5,12 @@ const T = {
     dir:"rtl", appTitle:"جام‌جهانی ۲۰۲۶", appSubtitle:"پیش‌بینی مسابقات",
     login:"ورود", register:"ثبت‌نام", logout:"خروج",
     username:"نام کاربری", password:"رمز عبور", confirmPassword:"تکرار رمز",
-    matches:"بازی‌ها", leaderboard:"جدول", myPredictions:"پیش‌بینی‌های من",
+    matches:"مرحله گروهی", leaderboard:"جدول", myPredictions:"پیش‌بینی‌های من",
     adminPanel:"پنل ادمین", predict:"پیش‌بینی", save:"ذخیره", cancel:"انصراف",
     home:"میزبان", away:"مهمان", totalPoints:"کل امتیاز",
     predicted:"پیش‌بینی شده", notPredicted:"پیش‌بینی نشده",
     upcoming:"پیش‌رو", finished:"پایان",
+    round32Tab:"۱/۱۶",
     group:"مرحله گروهی", round32:"یک‌شانزدهم", round16:"یک‌هشتم",
     quarter:"یک‌چهارم", semi:"نیمه‌نهایی", third:"رده‌بندی سوم", final:"فینال",
     setResult:"ثبت نتیجه", addMatch:"افزودن بازی",
@@ -46,11 +47,12 @@ const T = {
     dir:"ltr", appTitle:"World Cup 2026", appSubtitle:"Match Predictions",
     login:"Login", register:"Register", logout:"Logout",
     username:"Username", password:"Password", confirmPassword:"Confirm Password",
-    matches:"Matches", leaderboard:"Leaderboard", myPredictions:"My Predictions",
+    matches:"Group Stage", leaderboard:"Leaderboard", myPredictions:"My Predictions",
     adminPanel:"Admin Panel", predict:"Predict", save:"Save", cancel:"Cancel",
     home:"Home", away:"Away", totalPoints:"Total Points",
     predicted:"Predicted", notPredicted:"Not Predicted",
     upcoming:"Upcoming", finished:"Finished",
+    round32Tab:"R32",
     group:"Group Stage", round32:"Round of 32", round16:"Round of 16",
     quarter:"Quarterfinal", semi:"Semifinal", third:"3rd Place", final:"Final",
     setResult:"Set Result", addMatch:"Add Match",
@@ -403,14 +405,15 @@ export default function App(){
           ?<AuthPanel t={t} form={form} setForm={setForm} authMode={authMode} setAuthMode={setAuthMode} authError={authError} onSubmit={handleAuth}/>
           :<>
             <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,.08)",marginBottom:16,overflowX:"auto",paddingTop:8,position:"sticky",top:58,zIndex:90,background:"#070d1c",backdropFilter:"blur(12px)"}}>
-              {["matches","champion","standings","leaderboard","myPredictions",...(isAdmin?["adminPanel"]:[])].map(k=>(
+              {["matches","round32","champion","standings","leaderboard","myPredictions",...(isAdmin?["adminPanel"]:[])].map(k=>(
                 <button key={k} className={`tab-btn${tab===k?" active":""}`} onClick={()=>setTab(k)}>
-                  {k==="matches"?"⚽ "+t.matches:k==="champion"?"🏆 "+t.championTab:k==="standings"?"📊 "+t.groupStandings:k==="leaderboard"?"🥇 "+t.leaderboard:k==="myPredictions"?"📋 "+t.myPredictions:"⚙️ "+t.adminPanel}
+                  {k==="matches"?"⚽ "+t.matches:k==="round32"?"⚡ "+(t.round32Tab||"۱/۱۶"):k==="champion"?"🏆 "+t.championTab:k==="standings"?"📊 "+t.groupStandings:k==="leaderboard"?"🥇 "+t.leaderboard:k==="myPredictions"?"📋 "+t.myPredictions:"⚙️ "+t.adminPanel}
                 </button>
               ))}
             </div>
             <div className="animate-in">
-              {tab==="matches"       &&<MatchesTab t={t} matches={matches} predictions={predictions} users={users} currentUser={currentUser} savePreds={savePreds} showToast={showToast}/>}
+              {tab==="matches"       &&<MatchesTab t={t} matches={matches} predictions={predictions} users={users} currentUser={currentUser} savePreds={savePreds} showToast={showToast} stageFilter="group"/>}
+              {tab==="round32"       &&<MatchesTab t={t} matches={matches} predictions={predictions} users={users} currentUser={currentUser} savePreds={savePreds} showToast={showToast} stageFilter="round32"/>}
               {tab==="champion"      &&<ChampionTab t={t} users={users} championData={championData} saveChampion={saveChampion} currentUser={currentUser} championLocked={championLocked} showToast={showToast}/>}
               {tab==="standings"     &&<StandingsTab t={t} standings={calcGroupStandings(matches)} matches={matches}/>}
               {tab==="leaderboard"   &&<LeaderboardTab t={t} leaderboard={getLeaderboard()} currentUser={currentUser} championData={championData}/>}
@@ -500,13 +503,18 @@ function AuthPanel({t,form,setForm,authMode,setAuthMode,authError,onSubmit}){
 }
 
 // ─── MATCHES TAB ─────────────────────────────────────────────────────────────
-function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast}){
+function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast,stageFilter="group"}){
   const[predModal,setPredModal]=useState(null);
   const[predVal,setPredVal]=useState({home:"",away:"",winner:"",method:""});
   const[filterGroup,setFilterGroup]=useState("all");
   const isLocked=m=>new Date(m.date)<=new Date();
   const hasResult=m=>m.result.home!==""&&m.result.away!=="";
   const isKO=m=>KNOCKOUT_STAGES.includes(m.stage);
+
+  // Filter matches by stage
+  const stageMatches = stageFilter==="group"
+    ? matches.filter(m=>m.stage==="group")
+    : matches.filter(m=>m.stage===stageFilter);
   const openPred=m=>{
     if(isLocked(m))return showToast(t.predictionLocked);
     setPredVal(predictions[currentUser]?.[m.id]||{home:"",away:"",winner:"",method:""});
@@ -524,8 +532,8 @@ function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast
     await savePreds({...base,[currentUser]:{...(base[currentUser]||{}),[predModal.id]:entry}});
     setPredModal(null);showToast(t.predictionSaved);
   };
-  const groups=[...new Set(matches.filter(m=>m.stage==="group").map(m=>m.group))].sort();
-  const displayed=matches.filter(m=>filterGroup==="all"||m.group===filterGroup||m.stage!=="group");
+  const groups=[...new Set(stageMatches.filter(m=>m.stage==="group").map(m=>m.group))].sort();
+  const displayed=stageMatches.filter(m=>filterGroup==="all"||m.group===filterGroup||m.stage!=="group");
   const byStage={};
   displayed.forEach(m=>{(byStage[m.stage]=byStage[m.stage]||[]).push(m);});
 
@@ -587,10 +595,10 @@ function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast
 
   return(
     <div>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+      {stageFilter==="group"&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
         <button className={`filter-btn${filterGroup==="all"?" active":""}`} onClick={()=>setFilterGroup("all")}>{t.allGroups}</button>
         {groups.map(g=><button key={g} className={`filter-btn${filterGroup===g?" active":""}`} onClick={()=>setFilterGroup(g)}>{t.groupLabel} {g}</button>)}
-      </div>
+      </div>}
       {STAGE_ORDER.map(stage=>{
         const sm=byStage[stage];if(!sm?.length)return null;
         const ko=KNOCKOUT_STAGES.includes(stage);
