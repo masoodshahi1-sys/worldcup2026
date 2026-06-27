@@ -212,6 +212,13 @@ const ALL_MATCHES=[
   {id:"l6",home:"Croatia",homeFlag:"🇭🇷",away:"Ghana",awayFlag:"🇬🇭",date:"2026-06-27T21:00Z",stage:"group",group:"L",result:{home:"",away:""}},
   // ─── ROUND OF 32 (یک‌شانزدهم نهایی) ─────────────────────────────────────────
   {id:"r32_73",home:"South Africa",homeFlag:"🇿🇦",away:"Canada",awayFlag:"🇨🇦",date:"2026-06-28T19:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_75",home:"Brazil",homeFlag:"🇧🇷",away:"Japan",awayFlag:"🇯🇵",date:"2026-06-29T17:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_77",home:"Germany",homeFlag:"🇩🇪",away:"Paraguay",awayFlag:"🇵🇾",date:"2026-06-29T20:30Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_74",home:"Netherlands",homeFlag:"🇳🇱",away:"Morocco",awayFlag:"🇲🇦",date:"2026-06-30T01:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_76",home:"Ivory Coast",homeFlag:"🇨🇮",away:"Norway",awayFlag:"🇳🇴",date:"2026-06-30T17:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_78",home:"France",homeFlag:"🇫🇷",away:"Sweden",awayFlag:"🇸🇪",date:"2026-06-30T21:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_79",home:"USA",homeFlag:"🇺🇸",away:"Bosnia and Herzegovina",awayFlag:"🇧🇦",date:"2026-07-02T00:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_80",home:"Australia",homeFlag:"🇦🇺",away:"Egypt",awayFlag:"🇪🇬",date:"2026-07-03T18:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
 ];
 
 const STAGE_ORDER=["group","round32","round16","quarter","semi","third","final"];
