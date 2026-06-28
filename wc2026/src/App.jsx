@@ -217,8 +217,16 @@ const ALL_MATCHES=[
   {id:"r32_74",home:"Netherlands",homeFlag:"🇳🇱",away:"Morocco",awayFlag:"🇲🇦",date:"2026-06-30T01:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
   {id:"r32_76",home:"Ivory Coast",homeFlag:"🇨🇮",away:"Norway",awayFlag:"🇳🇴",date:"2026-06-30T17:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
   {id:"r32_78",home:"France",homeFlag:"🇫🇷",away:"Sweden",awayFlag:"🇸🇪",date:"2026-06-30T21:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_84",home:"Mexico",homeFlag:"🇲🇽",away:"Ecuador",awayFlag:"🇪🇨",date:"2026-07-01T01:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_85",home:"England",homeFlag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",away:"Congo DR",awayFlag:"🇨🇩",date:"2026-07-01T16:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_81",home:"Belgium",homeFlag:"🇧🇪",away:"Senegal",awayFlag:"🇸🇳",date:"2026-07-01T20:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
   {id:"r32_79",home:"USA",homeFlag:"🇺🇸",away:"Bosnia and Herzegovina",awayFlag:"🇧🇦",date:"2026-07-02T00:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_82",home:"Spain",homeFlag:"🇪🇸",away:"Austria",awayFlag:"🇦🇹",date:"2026-07-02T19:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_83",home:"Portugal",homeFlag:"🇵🇹",away:"Croatia",awayFlag:"🇭🇷",date:"2026-07-02T23:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_86",home:"Switzerland",homeFlag:"🇨🇭",away:"Algeria",awayFlag:"🇩🇿",date:"2026-07-03T03:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
   {id:"r32_80",home:"Australia",homeFlag:"🇦🇺",away:"Egypt",awayFlag:"🇪🇬",date:"2026-07-03T18:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_88",home:"Argentina",homeFlag:"🇦🇷",away:"Cape Verde",awayFlag:"🇨🇻",date:"2026-07-03T22:00Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
+  {id:"r32_87",home:"Colombia",homeFlag:"🇨🇴",away:"Ghana",awayFlag:"🇬🇭",date:"2026-07-04T01:30Z",stage:"round32",group:"",result:{home:"",away:"",winner:"",method:""}},
 ];
 
 const STAGE_ORDER=["group","round32","round16","quarter","semi","third","final"];
