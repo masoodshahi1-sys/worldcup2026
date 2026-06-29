@@ -577,7 +577,7 @@ function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast
                 <span style={{fontWeight:isMe?700:500,color:isMe?"#f0c040":"#aab",minWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flexShrink:0}}>
                   {isMe?"★ "+u:u}
                 </span>
-                <div style={{flex:1,display:"flex",alignItems:"center",gap:6}}>
+                <div style={{flex:1,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                   {p
                     ?<>
                       <span style={{fontWeight:700,color:isMe?"#f0c040":"#e8eaf0",letterSpacing:1,minWidth:30,textAlign:"center"}}>
@@ -586,6 +586,11 @@ function MatchesTab({t,matches,predictions,users,currentUser,savePreds,showToast
                       {isKO(m)&&p.winner&&
                         <span style={{fontSize:11,color:"#c080ff"}}>
                           {p.winner===m.home?m.homeFlag:m.awayFlag} {teamName(p.winner,t)}
+                        </span>
+                      }
+                      {isKO(m)&&p.method&&
+                        <span style={{fontSize:10,color:"#8899bb",background:"rgba(255,255,255,.07)",padding:"1px 5px",borderRadius:4}}>
+                          {p.method==="90"?t.method90:p.method==="ET"?t.methodET:t.methodPK}
                         </span>
                       }
                     </>
